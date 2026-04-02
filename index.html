@@ -1,0 +1,357 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Données Climat & Océan — SWIO (incl. Mayotte) + Kenya</title>
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/topojson-client@3"></script>
+<style>
+  * { margin:0; padding:0; box-sizing:border-box; }
+  body { font-family:'Outfit',sans-serif; background:#f4f7fa; color:#1e293b; min-height:100vh; }
+  button { font-family:'Outfit',sans-serif; }
+  ::-webkit-scrollbar { width:6px; }
+  ::-webkit-scrollbar-track { background:#eef2f6; }
+  ::-webkit-scrollbar-thumb { background:#b0bec5; border-radius:3px; }
+
+  .header { padding:18px 24px 10px; border-bottom:1px solid #dde4ec; background:#fff; }
+  .header h1 { font-size:21px; font-weight:800; letter-spacing:-0.5px; color:#0f172a; }
+  .header h1 .accent { color:#0891b2; }
+  .header p { font-size:13px; color:#64748b; margin-top:3px; }
+
+  .tabs { display:flex; gap:0; border-bottom:1px solid #dde4ec; padding:0 24px; background:#fff; }
+  .tab-btn { padding:10px 20px; border:none; cursor:pointer; font-size:13px; font-weight:600;
+    background:transparent; color:#94a3b8; border-bottom:2px solid transparent; transition:all .2s; }
+  .tab-btn.active { color:#0891b2; border-bottom-color:#0891b2; background:#f0fdfa; }
+  .tab-btn:hover { color:#475569; }
+
+  .main { display:flex; gap:0; min-height:calc(100vh - 112px); }
+  .map-area { flex:1 1 60%; padding:16px; }
+  .side-panel { flex:0 0 360px; border-left:1px solid #dde4ec; padding:16px; overflow-y:auto; max-height:calc(100vh - 112px); background:#fff; }
+
+  .domain-toggles { display:flex; flex-wrap:wrap; gap:6px; margin-top:10px; }
+  .domain-btn { padding:4px 11px; border-radius:6px; font-size:10.5px; font-weight:600; cursor:pointer;
+    font-family:'JetBrains Mono',monospace; transition:all .2s; background:#fff; }
+
+  .stat-grid { display:grid; grid-template-columns:1fr 1fr; gap:8px; margin-bottom:16px; }
+  .stat-card { background:#f0fdfa; border:1px solid #ccfbf1; border-radius:8px; padding:8px 10px; }
+  .stat-label { font-size:10px; color:#64748b; text-transform:uppercase; letter-spacing:1px; }
+  .stat-value { font-size:16px; font-weight:700; color:#0891b2; }
+
+  .ds-item { display:flex; align-items:center; justify-content:space-between; padding:6px 10px;
+    border-radius:6px; margin-bottom:5px; }
+  .ds-name { font-size:12px; font-weight:600; color:#1e293b; }
+  .ds-domain { font-size:10px; margin-left:8px; font-weight:600; }
+  .ds-res { font-size:10.5px; color:#64748b; font-family:'JetBrains Mono',monospace; }
+  .ds-right { display:flex; align-items:center; gap:6px; }
+
+  .badge { padding:2px 7px; border-radius:4px; font-size:10.5px; font-weight:600; }
+  .badge-cmip5 { background:#ede9fe; color:#7c3aed; }
+  .badge-cmip6 { background:#dbeafe; color:#2563eb; }
+
+  .avail-yes { color:#16a34a; font-weight:700; }
+  .avail-partial { color:#d97706; font-weight:700; }
+  .avail-no { color:#dc2626; font-weight:700; }
+
+  .placeholder { text-align:center; padding:60px 20px; }
+  .placeholder .icon { font-size:40px; margin-bottom:12px; }
+  .placeholder p { font-size:14px; color:#94a3b8; }
+
+  .filter-bar { display:flex; gap:6px; margin-bottom:14px; flex-wrap:wrap; }
+  .filter-btn { padding:5px 14px; border-radius:6px; font-size:12px; font-weight:600; cursor:pointer;
+    border:1px solid #dde4ec; background:#fff; color:#64748b; }
+  .filter-btn.active { border-color:#0891b2; background:#f0fdfa; color:#0891b2; }
+
+  table { width:100%; border-collapse:collapse; font-size:12px; }
+  th { padding:10px 8px; text-align:left; border-bottom:2px solid #0891b2; color:#0891b2;
+    font-weight:700; font-size:10.5px; text-transform:uppercase; letter-spacing:.5px;
+    font-family:'JetBrains Mono',monospace; position:sticky; top:0; background:#f4f7fa; z-index:1; }
+  td { padding:8px; border-bottom:1px solid #e2e8f0; color:#334155; font-size:12px; }
+  tr:nth-child(even) { background:#f8fafc; }
+  .td-center { text-align:center; }
+  .td-mono { font-family:'JetBrains Mono',monospace; font-size:11px; }
+
+  .legend-row { display:flex; gap:16px; font-size:12px; color:#64748b; margin-top:14px; }
+
+  .chain-grid { display:grid; grid-template-columns:1fr 1fr; gap:14px; }
+  .chain-card { border-radius:10px; padding:16px; }
+  .chain-cmip5 { background:#f5f3ff; border:1px solid #ddd6fe; }
+  .chain-cmip6 { background:#eff6ff; border:1px solid #bfdbfe; }
+  .chain-reanalysis { background:#f0fdfa; border:1px solid #ccfbf1; margin-top:14px; border-radius:10px; padding:16px; }
+  .chain-corresp { background:#fff; border:1px solid #e2e8f0; border-radius:10px; padding:16px; margin-top:14px; }
+
+  .scenario-tags { display:flex; gap:5px; flex-wrap:wrap; margin-bottom:10px; }
+  .scenario-tag-cmip5 { padding:3px 9px; background:#ede9fe; border-radius:4px; font-size:11px; color:#7c3aed; font-weight:600; }
+  .scenario-tag-cmip6 { padding:3px 9px; background:#dbeafe; border-radius:4px; font-size:11px; color:#2563eb; font-weight:600; }
+
+  .chain-arrow { display:flex; align-items:center; gap:8px; margin-bottom:7px; }
+  .chain-target { background:#fff; border:1px solid #e2e8f0; border-radius:6px; padding:6px 10px; flex:1; }
+  .chain-target-name { font-size:12px; font-weight:600; color:#1e293b; }
+  .chain-target-desc { font-size:10px; color:#64748b; }
+
+  .reanalysis-flow { display:flex; flex-wrap:wrap; gap:8px; }
+  .flow-item { background:#fff; border:1px solid #e2e8f0; border-radius:8px; padding:7px 12px; display:flex; align-items:center; gap:6px; }
+  .flow-from { font-size:12px; font-weight:600; color:#0891b2; }
+  .flow-arrow { color:#16a34a; }
+  .flow-to { font-size:12px; font-weight:600; color:#1e293b; }
+  .flow-type { font-size:10px; color:#64748b; margin-left:4px; }
+
+  .corresp-row { display:flex; gap:10px; flex-wrap:wrap; }
+  .corresp-item { display:flex; align-items:center; gap:8px; background:#f8fafc; border:1px solid #e2e8f0; border-radius:8px; padding:8px 14px; }
+  .corresp-rcp { color:#7c3aed; font-weight:700; font-size:12px; }
+  .corresp-eq { color:#16a34a; }
+  .corresp-ssp { color:#2563eb; font-weight:700; font-size:12px; }
+  .corresp-label { color:#64748b; font-size:10px; }
+
+  .section-title { font-size:12px; font-weight:700; color:#94a3b8; text-transform:uppercase; letter-spacing:1px; margin:0 0 10px; }
+
+  @media (max-width:900px) {
+    .main { flex-direction:column; }
+    .side-panel { flex:none; max-height:none; border-left:none; border-top:1px solid #dde4ec; }
+    .chain-grid { grid-template-columns:1fr; }
+  }
+</style>
+</head>
+<body>
+
+<div class="header">
+  <h1><span class="accent">◆</span> Données Climat & Océan — SWIO + Kenya</h1>
+  <p>Catalogue interactif des sources de données NetCDF • Résolutions • Liens CMIP5/CMIP6 • Incl. Mayotte</p>
+</div>
+
+<div class="tabs" id="tabs"></div>
+<div class="main" id="content"></div>
+
+<script>
+const territories = [
+  { id:"comores", name:"Comores", lat:-12.2, lon:44.3, area:1862, peak:2361, climate:"Tropical humide maritime", flag:"🇰🇲" },
+  { id:"mayotte", name:"Mayotte", lat:-12.8, lon:45.15, area:374, peak:660, climate:"Tropical humide maritime, lagon fermé", flag:"🇾🇹" },
+  { id:"madagascar", name:"Madagascar", lat:-18.9, lon:47.5, area:587041, peak:2876, climate:"Tropical varié (aride S, humide E)", flag:"🇲🇬" },
+  { id:"maurice", name:"Maurice", lat:-20.3, lon:57.6, area:2040, peak:828, climate:"Tropical maritime", flag:"🇲🇺" },
+  { id:"seychelles", name:"Seychelles", lat:-4.7, lon:55.5, area:459, peak:905, climate:"Tropical équatorial maritime", flag:"🇸🇨" },
+  { id:"reunion", name:"La Réunion", lat:-21.1, lon:55.5, area:2512, peak:3069, climate:"Tropical montagnard, microclimats", flag:"🇷🇪" },
+  { id:"kenya", name:"Kenya", lat:-0.02, lon:37.9, area:580367, peak:5199, climate:"Équatorial varié (aride N/E, tropical W)", flag:"🇰🇪" },
+];
+
+const modelDomains = [
+  { id:"arome", name:"AROME Océan Indien", res:"2,5 km", color:"#0891b2", bounds:[[-25.9,32.75],[-7.25,67.6]], type:"Prévision NWP (Météo-France)" },
+  { id:"aladin_cordex", name:"ALADIN63 CORDEX-Africa", res:"~50 km (0,44°)", color:"#7c3aed", bounds:[[-45.76,-24.64],[42.24,60.28]], type:"Projections CMIP5 (CNRM)" },
+  { id:"aladin_swio", name:"ALADIN63 BRIO-SWIO", res:"12 km → 3 km", color:"#dc2626", bounds:[[-30,30],[-5,75]], type:"Projections CMIP6 (CNRM-ESM2-1, projet BRIO)" },
+  { id:"winds", name:"WINDS (CROCO)", res:"~2 km", color:"#d97706", bounds:[[-23.5,30],[0,77.5]], type:"Recherche océan" },
+  { id:"cordex", name:"CORDEX-Africa (multi-RCM)", res:"~25–50 km", color:"#8b5cf6", bounds:[[-45.76,-24.64],[42.24,60.28]], type:"Projections CMIP5/6" },
+];
+
+const domainColors = { "Atmosphère":"#0891b2", "Précipitations":"#2563eb", "Océan":"#0369a1", "Projections":"#7c3aed", "Satellite":"#d97706" };
+
+const datasets = [
+  { name:"ERA5", domain:"Atmosphère", res:"0,25° (~28 km)", temporal:"Horaire", cmip:"none", avail:{comores:true,mayotte:true,madagascar:true,maurice:true,seychelles:true,reunion:true,kenya:true} },
+  { name:"ERA5-Land", domain:"Atmosphère", res:"0,1° (~9 km)", temporal:"Horaire", cmip:"none", avail:{comores:true,mayotte:true,madagascar:true,maurice:true,seychelles:true,reunion:true,kenya:true} },
+  { name:"AROME OI", domain:"Atmosphère", res:"2,5 km", temporal:"Horaire", cmip:"none", avail:{comores:true,mayotte:true,madagascar:true,maurice:true,seychelles:"partial",reunion:true,kenya:false} },
+  { name:"WRF 1 km", domain:"Atmosphère", res:"1 km", temporal:"Horaire", cmip:"none", avail:{comores:false,mayotte:false,madagascar:false,maurice:false,seychelles:false,reunion:true,kenya:"partial"} },
+  { name:"CHIRPS v2", domain:"Précipitations", res:"~5 km", temporal:"Jour", cmip:"none", avail:{comores:true,mayotte:true,madagascar:true,maurice:true,seychelles:true,reunion:true,kenya:true} },
+  { name:"GPM IMERG", domain:"Précipitations", res:"~10 km", temporal:"30 min", cmip:"none", avail:{comores:true,mayotte:true,madagascar:true,maurice:true,seychelles:true,reunion:true,kenya:true} },
+  { name:"GLORYS12V1", domain:"Océan", res:"1/12° (~8 km)", temporal:"Jour", cmip:"none", avail:{comores:true,mayotte:true,madagascar:true,maurice:true,seychelles:true,reunion:true,kenya:true} },
+  { name:"OSTIA SST", domain:"Océan", res:"~5 km", temporal:"Jour", cmip:"none", avail:{comores:true,mayotte:true,madagascar:true,maurice:true,seychelles:true,reunion:true,kenya:true} },
+  { name:"WINDS 2 km", domain:"Océan", res:"~2 km", temporal:"30 min", cmip:"none", avail:{comores:true,mayotte:true,madagascar:true,maurice:true,seychelles:true,reunion:true,kenya:false} },
+  { name:"CORDEX AFR-44", domain:"Projections", res:"~50 km", temporal:"Jour", cmip:"cmip5", avail:{comores:true,mayotte:true,madagascar:true,maurice:true,seychelles:true,reunion:true,kenya:true} },
+  { name:"CORDEX-CORE AFR-22", domain:"Projections", res:"~25 km", temporal:"Jour", cmip:"cmip5+6", avail:{comores:true,mayotte:true,madagascar:true,maurice:true,seychelles:true,reunion:true,kenya:true} },
+  { name:"ALADIN63 CORDEX-Afr", domain:"Projections", res:"~50 km", temporal:"Jour", cmip:"cmip5", avail:{comores:true,mayotte:true,madagascar:true,maurice:true,seychelles:true,reunion:true,kenya:true} },
+  { name:"ALADIN63 BRIO-SWIO", domain:"Projections", res:"12 km → 3 km", temporal:"Jour", cmip:"cmip6", avail:{comores:true,mayotte:true,madagascar:true,maurice:true,seychelles:true,reunion:true,kenya:false} },
+  { name:"CMIP5", domain:"Projections", res:"~100–200 km", temporal:"Mois", cmip:"cmip5", avail:{comores:true,mayotte:true,madagascar:true,maurice:true,seychelles:true,reunion:true,kenya:true} },
+  { name:"CMIP6", domain:"Projections", res:"~50–200 km", temporal:"Mois", cmip:"cmip6", avail:{comores:true,mayotte:true,madagascar:true,maurice:true,seychelles:true,reunion:true,kenya:true} },
+  { name:"Sentinel-2", domain:"Satellite", res:"10–20 m", temporal:"5 jours", cmip:"none", avail:{comores:true,mayotte:true,madagascar:true,maurice:true,seychelles:true,reunion:true,kenya:true} },
+  { name:"Copernicus DEM", domain:"Satellite", res:"30 m", temporal:"Statique", cmip:"none", avail:{comores:true,mayotte:true,madagascar:true,maurice:true,seychelles:true,reunion:true,kenya:true} },
+];
+
+const cmipChain = [
+  { from:"CMIP5 GCMs", to:"CORDEX AFR-44 (multi-RCM)", scenario:"RCP2.6, 4.5, 8.5", type:"Forçage dynamique" },
+  { from:"CMIP5 (CNRM-CM5)", to:"ALADIN63 CORDEX-Africa", scenario:"RCP2.6, 4.5, 8.5", type:"Forçage dynamique (CNRM)" },
+  { from:"CMIP5 GCMs", to:"CORDEX-CORE AFR-22", scenario:"RCP2.6, 8.5", type:"Forçage dynamique" },
+  { from:"CMIP6 (CNRM-ESM2-1)", to:"ALADIN63 BRIO-SWIO (12→3 km)", scenario:"SSP1-2.6, SSP2-4.5, SSP3-7.0, SSP5-8.5", type:"Forçage dynamique + correction biais (projet BRIO)" },
+  { from:"CMIP6 GCMs", to:"CORDEX-CORE AFR-22 (futur)", scenario:"SSP1-2.6, SSP3-7.0, SSP5-8.5", type:"Forçage dynamique (en cours)" },
+  { from:"ERA5", to:"ERA5-Land", scenario:"—", type:"Forçage atmosphérique" },
+  { from:"ERA5", to:"GLORYS12V1", scenario:"—", type:"Forçage de surface" },
+  { from:"ERA5 / ARPEGE", to:"AROME Océan Indien", scenario:"—", type:"Conditions initiales" },
+  { from:"ERA5", to:"WRF 1 km", scenario:"—", type:"Conditions limites" },
+  { from:"ERA5 + GLORYS", to:"WINDS 2 km", scenario:"—", type:"Forçage atmo + océan" },
+];
+
+// STATE
+let state = { tab:"map", selectedTerritory:null, visibleDomains:["arome","aladin_swio","winds"], filterDomain:"all" };
+let coastlineData = null;
+
+// PROJECTION
+function project(lon, lat) {
+  const cx=50, cy=-12, scale=550, tx=400, ty=280;
+  const x = tx + scale*(lon-cx)*Math.PI/180;
+  const latRad=lat*Math.PI/180, cyRad=cy*Math.PI/180;
+  const y = ty - scale*(Math.log(Math.tan(Math.PI/4+latRad/2)) - Math.log(Math.tan(Math.PI/4+cyRad/2)));
+  return [x,y];
+}
+
+function availIcon(v) {
+  if(v===true) return '<span class="avail-yes">✓</span>';
+  if(v==="partial") return '<span class="avail-partial">○</span>';
+  return '<span class="avail-no">✗</span>';
+}
+function cmipBadge(c) {
+  if(c==="cmip5") return '<span class="badge badge-cmip5">CMIP5</span>';
+  if(c==="cmip6") return '<span class="badge badge-cmip6">CMIP6</span>';
+  if(c==="cmip5+6") return '<span class="badge badge-cmip5" style="margin-right:3px">CMIP5</span><span class="badge badge-cmip6">CMIP6</span>';
+  return '<span style="color:#94a3b8;font-size:11px">—</span>';
+}
+
+function render() {
+  document.getElementById("tabs").innerHTML = [
+    {id:"map",label:"🗺️ Carte & Domaines"},{id:"matrix",label:"📊 Matrice Résolutions"},{id:"chain",label:"🔗 Chaîne CMIP"},
+  ].map(t=>`<button class="tab-btn ${state.tab===t.id?'active':''}" onclick="setState({tab:'${t.id}'})">${t.label}</button>`).join("");
+  const el = document.getElementById("content");
+  if(state.tab==="map") renderMap(el);
+  else if(state.tab==="matrix") renderMatrix(el);
+  else renderChain(el);
+}
+
+function renderMap(el) {
+  const t = state.selectedTerritory ? territories.find(x=>x.id===state.selectedTerritory) : null;
+  let svg = '';
+
+  // Grid
+  [-30,-20,-10,0,10,20,30,40].forEach(lat=>{ const[,y]=project(0,lat); svg+=`<line x1="0" x2="800" y1="${y}" y2="${y}" stroke="#c8d6e0" stroke-width="0.4"/>`; });
+  [20,30,40,50,60,70,80].forEach(lon=>{ const[x]=project(lon,0); svg+=`<line y1="0" y2="560" x1="${x}" x2="${x}" stroke="#c8d6e0" stroke-width="0.4"/>`; });
+
+  // Coastline
+  if(coastlineData){
+    const geoms = coastlineData.type==="FeatureCollection" ? coastlineData.features.map(f=>f.geometry) : [coastlineData.geometry||coastlineData];
+    geoms.forEach(geom=>{
+      const coords = geom.type==="MultiPolygon" ? geom.coordinates.flat() : geom.coordinates;
+      coords.forEach(ring=>{ let d=""; ring.forEach((pt,i)=>{ const[x,y]=project(pt[0],pt[1]); d+=(i===0?"M":"L")+x.toFixed(1)+","+y.toFixed(1); }); d+="Z"; svg+=`<path d="${d}" fill="#e2e8f0" stroke="#94a3b8" stroke-width="0.6"/>`; });
+    });
+  }
+
+  // Domains
+  modelDomains.forEach(dm=>{
+    if(!state.visibleDomains.includes(dm.id)) return;
+    const[x1,y1]=project(dm.bounds[0][1],dm.bounds[0][0]);
+    const[x2,y2]=project(dm.bounds[1][1],dm.bounds[1][0]);
+    const x=Math.min(x1,x2),y=Math.min(y1,y2),w=Math.abs(x2-x1),h=Math.abs(y2-y1);
+    svg+=`<rect x="${x}" y="${y}" width="${w}" height="${h}" fill="${dm.color}" opacity="0.07" stroke="${dm.color}" stroke-width="1.5" stroke-dasharray="6,3" rx="2"/>`;
+    svg+=`<text x="${x+4}" y="${y+13}" fill="${dm.color}" font-size="10" font-family="'JetBrains Mono',monospace" font-weight="600">${dm.name}</text>`;
+    svg+=`<text x="${x+4}" y="${y+24}" fill="${dm.color}" font-size="8" font-family="'JetBrains Mono',monospace" opacity="0.7">${dm.res} — ${dm.type}</text>`;
+  });
+
+  // Territory markers
+  territories.forEach(tr=>{
+    const[cx,cy]=project(tr.lon,tr.lat);
+    const isSel=state.selectedTerritory===tr.id;
+    const r=isSel?10:7, fillColor=isSel?"#0891b2":"#0369a1";
+    if(isSel){
+      svg+=`<circle cx="${cx}" cy="${cy}" r="${r+4}" fill="none" stroke="#0891b2" stroke-width="1.5" opacity="0.4"><animate attributeName="r" from="${r+2}" to="${r+12}" dur="1.5s" repeatCount="indefinite"/><animate attributeName="opacity" from="0.6" to="0" dur="1.5s" repeatCount="indefinite"/></circle>`;
+    }
+    svg+=`<circle cx="${cx}" cy="${cy}" r="${r+8}" fill="transparent" style="cursor:pointer" onclick="setState({selectedTerritory:'${tr.id}'})"/>`;
+    svg+=`<circle cx="${cx}" cy="${cy}" r="${r}" fill="${fillColor}" stroke="#fff" stroke-width="2" style="pointer-events:none"/>`;
+    svg+=`<text x="${cx+r+5}" y="${cy+4}" fill="#1e293b" font-size="11" font-family="'Outfit',sans-serif" font-weight="${isSel?700:500}" style="pointer-events:none">${tr.flag} ${tr.name}</text>`;
+  });
+
+  svg+=`<g transform="translate(620,520)"><line x1="0" y1="0" x2="100" y2="0" stroke="#64748b" stroke-width="1"/><line x1="0" y1="-3" x2="0" y2="3" stroke="#64748b"/><line x1="100" y1="-3" x2="100" y2="3" stroke="#64748b"/><text x="50" y="14" fill="#64748b" font-size="9" text-anchor="middle" font-family="'JetBrains Mono',monospace">~1000 km</text></g>`;
+
+  // Side panel
+  let side = '';
+  if(t){
+    side=`<h2 style="font-size:20px;font-weight:700;color:#0f172a;margin:0 0 4px">${t.flag} ${t.name}</h2>
+      <p style="font-size:12px;color:#64748b;margin:0 0 14px">${t.climate}</p>
+      <div class="stat-grid">
+        <div class="stat-card"><div class="stat-label">Superficie</div><div class="stat-value">${t.area.toLocaleString()} km²</div></div>
+        <div class="stat-card"><div class="stat-label">Point culminant</div><div class="stat-value">${t.peak.toLocaleString()} m</div></div>
+        <div class="stat-card"><div class="stat-label">Latitude</div><div class="stat-value">${t.lat}°</div></div>
+        <div class="stat-card"><div class="stat-label">Longitude</div><div class="stat-value">${t.lon}°</div></div>
+      </div>
+      <h3 class="section-title">Datasets disponibles</h3>
+      ${datasets.map(ds=>{
+        const av=ds.avail[t.id];
+        const bg=av===true?"#f0fdf4":av==="partial"?"#fefce8":"#fef2f2";
+        const bd=av===true?"#bbf7d0":av==="partial"?"#fde68a":"#fecaca";
+        return `<div class="ds-item" style="background:${bg};border:1px solid ${bd}">
+          <div><span class="ds-name">${ds.name}</span><span class="ds-domain" style="color:${domainColors[ds.domain]}">${ds.domain}</span></div>
+          <div class="ds-right">${cmipBadge(ds.cmip)}<span class="ds-res">${ds.res}</span>${availIcon(av)}</div>
+        </div>`;
+      }).join("")}`;
+  } else {
+    side='<div class="placeholder"><div class="icon">🗺️</div><p>Cliquez sur un territoire sur la carte pour voir les données disponibles</p></div>';
+  }
+
+  const toggles = modelDomains.map(d=>{
+    const active=state.visibleDomains.includes(d.id);
+    return `<button class="domain-btn" style="border:1.5px solid ${d.color};${active?`background:${d.color}12;color:${d.color}`:`color:#94a3b8`}" onclick="toggleDomain('${d.id}')">${active?"◉":"○"} ${d.name}</button>`;
+  }).join("");
+
+  el.innerHTML=`<div class="map-area">
+    <svg viewBox="0 0 800 560" style="width:100%;height:auto;background:linear-gradient(180deg,#dbeafe 0%,#bae6fd 40%,#a5d8f3 100%);border-radius:10px;border:1px solid #cbd5e1">${svg}</svg>
+    <div class="domain-toggles">${toggles}</div>
+  </div><div class="side-panel">${side}</div>`;
+}
+
+function renderMatrix(el) {
+  const filtered = state.filterDomain==="all" ? datasets : datasets.filter(d=>d.domain===state.filterDomain);
+  el.innerHTML=`<div style="flex:1;padding:20px;overflow-x:auto;background:#fff">
+    <div class="filter-bar">${["all",...Object.keys(domainColors)].map(d=>`<button class="filter-btn ${state.filterDomain===d?'active':''}" onclick="setState({filterDomain:'${d}'})">${d==="all"?"Tous":d}</button>`).join("")}</div>
+    <div style="overflow-x:auto"><table><thead><tr>
+      <th style="min-width:160px">Dataset</th><th style="min-width:100px">Résolution</th><th style="min-width:70px">Temporel</th><th style="min-width:70px">CMIP</th>
+      ${territories.map(t=>`<th style="min-width:85px">${t.flag} ${t.name}</th>`).join("")}
+    </tr></thead><tbody>
+      ${filtered.map((ds,i)=>`<tr>
+        <td style="font-weight:600"><span style="color:${domainColors[ds.domain]};margin-right:6px">●</span>${ds.name}</td>
+        <td class="td-mono">${ds.res}</td><td>${ds.temporal}</td><td>${cmipBadge(ds.cmip)}</td>
+        ${territories.map(t=>`<td class="td-center">${availIcon(ds.avail[t.id])}</td>`).join("")}
+      </tr>`).join("")}
+    </tbody></table></div>
+    <div class="legend-row"><span><span class="avail-yes">✓</span> Disponible</span><span><span class="avail-partial">○</span> Partiel</span><span><span class="avail-no">✗</span> Non disponible</span></div>
+  </div>`;
+}
+
+function renderChain(el) {
+  const cmip5Links = cmipChain.filter(c=>c.from.includes("CMIP5")).map(c=>
+    `<div class="chain-arrow"><span class="chain-arrow-icon" style="color:#7c3aed">→</span><div class="chain-target"><div class="chain-target-name">${c.to}</div><div class="chain-target-desc">${c.type} • ${c.scenario}</div></div></div>`).join("");
+  const cmip6Links = cmipChain.filter(c=>c.from.includes("CMIP6")).map(c=>
+    `<div class="chain-arrow"><span class="chain-arrow-icon" style="color:#2563eb">→</span><div class="chain-target"><div class="chain-target-name">${c.to}</div><div class="chain-target-desc">${c.type} • ${c.scenario}</div></div></div>`).join("");
+  const reaLinks = cmipChain.filter(c=>c.from.includes("ERA5")||c.from.includes("GLORYS")||c.from.includes("ARPEGE")).map(c=>
+    `<div class="flow-item"><span class="flow-from">${c.from}</span><span class="flow-arrow">→</span><span class="flow-to">${c.to}</span><span class="flow-type">(${c.type})</span></div>`).join("");
+
+  el.innerHTML=`<div style="flex:1;padding:20px;background:#fff">
+    <h2 style="font-size:18px;font-weight:700;margin:0 0 4px;color:#0f172a">Chaîne de modélisation & liens CMIP</h2>
+    <p style="font-size:12px;color:#64748b;margin:0 0 18px">Relations entre les sources, réanalyses et projections climatiques — dont ALADIN63 (CNRM / Météo-France)</p>
+    <div class="chain-grid">
+      <div class="chain-card chain-cmip5">
+        <h3 style="font-size:14px;font-weight:700;color:#7c3aed;margin:0 0 10px">CMIP5 — Scénarios RCP</h3>
+        <div class="scenario-tags">${["RCP2.6","RCP4.5","RCP6.0","RCP8.5"].map(s=>`<span class="scenario-tag-cmip5">${s}</span>`).join("")}</div>
+        <div style="font-size:12px;color:#64748b;margin-bottom:10px">GCMs : CNRM-CM5, MPI-ESM, etc. (~100–200 km)</div>
+        ${cmip5Links}
+      </div>
+      <div class="chain-card chain-cmip6">
+        <h3 style="font-size:14px;font-weight:700;color:#2563eb;margin:0 0 10px">CMIP6 — Scénarios SSP</h3>
+        <div class="scenario-tags">${["SSP1-1.9","SSP1-2.6","SSP2-4.5","SSP3-7.0","SSP5-8.5"].map(s=>`<span class="scenario-tag-cmip6">${s}</span>`).join("")}</div>
+        <div style="font-size:12px;color:#64748b;margin-bottom:10px">GCMs : CNRM-ESM2-1, etc. (~50–200 km)</div>
+        ${cmip6Links}
+      </div>
+    </div>
+    <div class="chain-reanalysis">
+      <h3 style="font-size:14px;font-weight:700;color:#0891b2;margin:0 0 10px">Chaîne des réanalyses (indépendant CMIP)</h3>
+      <div class="reanalysis-flow">${reaLinks}</div>
+    </div>
+    <div class="chain-corresp">
+      <h3 class="section-title">Correspondance RCP ↔ SSP</h3>
+      <div class="corresp-row">
+        ${[{rcp:"RCP2.6",ssp:"SSP1-2.6",label:"Faibles émissions"},{rcp:"RCP4.5",ssp:"SSP2-4.5",label:"Intermédiaires"},{rcp:"RCP8.5",ssp:"SSP5-8.5",label:"Fortes émissions"}].map(c=>
+          `<div class="corresp-item"><span class="corresp-rcp">${c.rcp}</span><span class="corresp-eq">≈</span><span class="corresp-ssp">${c.ssp}</span><span class="corresp-label">(${c.label})</span></div>`).join("")}
+      </div>
+    </div>
+  </div>`;
+}
+
+function setState(patch) { Object.assign(state,patch); render(); }
+function toggleDomain(id) { state.visibleDomains = state.visibleDomains.includes(id) ? state.visibleDomains.filter(d=>d!==id) : [...state.visibleDomains,id]; render(); }
+
+fetch("https://cdn.jsdelivr.net/npm/world-atlas@2/land-110m.json").then(r=>r.json()).then(topo=>{ coastlineData=topojson.feature(topo,topo.objects.land); render(); }).catch(()=>render());
+render();
+</script>
+</body>
+</html>
