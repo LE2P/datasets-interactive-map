@@ -1,9 +1,9 @@
 <!DOCTYPE html>
-<html lang="fr">
+<html lang="en">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>LIGHTEN-IO — Données Climat SOOI</title>
+<title>LIGHTEN-IO — SWIO Climate Data</title>
 <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
 <script src="https://cdn.jsdelivr.net/npm/topojson-client@3"></script>
 <style>
@@ -19,7 +19,11 @@ button{font-family:'Outfit',sans-serif}
 .header h1 .accent{color:#0891b2}
 .header h1 .lighten{color:#065A82}
 .header p{font-size:13px;color:#94a3b8;margin-top:2px}
-.header-right{margin-left:auto;display:flex;gap:6px;flex-wrap:wrap}
+.header-right{margin-left:auto;display:flex;gap:6px;flex-wrap:wrap;align-items:center}
+.lang-toggle{display:flex;border:1px solid #e2e8f0;border-radius:6px;overflow:hidden;background:#f8fafc;margin-right:4px}
+.lang-btn{padding:5px 11px;border:none;cursor:pointer;font-size:12px;font-weight:700;background:transparent;color:#94a3b8;font-family:'JetBrains Mono',monospace;transition:all .15s}
+.lang-btn.active{background:#0891b2;color:#fff}
+.lang-btn:hover:not(.active){color:#475569;background:#fff}
 .legend-chip{display:flex;align-items:center;gap:5px;padding:5px 11px;border-radius:6px;font-size:12px;font-weight:600;border:1px solid #e2e8f0;background:#f8fafc}
 .legend-dot{width:9px;height:9px;border-radius:50%}
 .tabs{display:flex;gap:0;border-bottom:1px solid #e2e8f0;padding:0 24px;background:#fff;flex-shrink:0}
@@ -28,7 +32,6 @@ button{font-family:'Outfit',sans-serif}
 .tab-btn:hover{color:#475569}
 .main{display:flex;gap:0;flex:1;min-height:0;overflow:hidden}
 
-/* Page 1: Carte et panel équilibrés */
 .map-area{flex:0 0 65%;padding:10px;display:flex;flex-direction:column;min-width:0}
 .map-area svg{flex:1;width:100%;height:100%;min-height:0}
 .side-panel{flex:1 1 35%;border-left:1px solid #e2e8f0;padding:14px 16px;overflow-y:auto;background:#f8fafc}
@@ -43,7 +46,6 @@ button{font-family:'Outfit',sans-serif}
 .stat-label{font-size:10px;color:#64748b;text-transform:uppercase;letter-spacing:.8px;font-weight:600}
 .stat-value{font-size:18px;font-weight:700;color:#0f172a;margin-top:2px}
 
-/* Couleurs nuancées par rubrique */
 .ds-section-title{font-size:13px;font-weight:700;text-transform:uppercase;letter-spacing:1.2px;margin:14px 0 8px;padding:7px 10px;border-radius:6px}
 .ds-section-obs{color:#92400e;background:linear-gradient(135deg,#fffbeb 0%,#fef3c7 100%);border-left:4px solid #f59e0b}
 .ds-section-reanalysis{color:#155e75;background:linear-gradient(135deg,#ecfeff 0%,#cffafe 100%);border-left:4px solid #06b6d4}
@@ -78,7 +80,6 @@ button{font-family:'Outfit',sans-serif}
 .filter-btn{padding:6px 14px;border-radius:6px;font-size:12px;font-weight:600;cursor:pointer;border:1px solid #e2e8f0;background:#fff;color:#94a3b8;transition:all .2s}
 .filter-btn.active{border-color:#0891b2;background:#f0fdfa;color:#0891b2}
 
-/* Page 2: Matrice agrandie */
 table{width:100%;border-collapse:collapse;font-size:13.5px}
 th{padding:11px 9px;text-align:left;border-bottom:2px solid #0891b2;color:#0891b2;font-weight:700;font-size:12px;text-transform:uppercase;letter-spacing:.5px;font-family:'JetBrains Mono',monospace;position:sticky;top:0;background:#fff;z-index:1}
 td{padding:9px;border-bottom:1px solid #f1f5f9;color:#475569;font-size:13.5px}
@@ -87,7 +88,6 @@ tr:nth-child(even){background:#f8fafc}
 .td-mono{font-family:'JetBrains Mono',monospace;font-size:11px}
 .legend-row{display:flex;gap:16px;font-size:12px;color:#94a3b8;margin-top:12px}
 
-/* Page 3: Chaîne - grille 2 colonnes, pas d'espace perdu */
 .chain-card{border-radius:10px;padding:18px;margin-bottom:0}
 .chain-cmip6{background:linear-gradient(135deg,#eff6ff 0%,#dbeafe 100%);border:1px solid #bfdbfe}
 .chain-obs{background:linear-gradient(135deg,#fffbeb 0%,#fef3c7 100%);border:1px solid #fde68a}
@@ -122,81 +122,355 @@ tr:nth-child(even){background:#f8fafc}
 <body>
 <div class="header">
   <div>
-    <h1><span class="lighten">LIGHTEN-IO</span> <span style="color:#cbd5e1">|</span> <span class="accent">Données Climat</span> — SOOI</h1>
-    <p>Observations in situ · Réanalyses · Modèles · Satellite — Sud-Ouest de l'Océan Indien</p>
+    <h1><span class="lighten">LIGHTEN-IO</span> <span style="color:#cbd5e1">|</span> <span class="accent" id="h-title">Climate Data</span> — <span id="h-region">SWIO</span></h1>
+    <p id="h-subtitle">In situ observations · Reanalyses · Models · Satellite — South-West Indian Ocean</p>
   </div>
   <div class="header-right">
-    <div class="legend-chip"><div class="legend-dot" style="background:#f59e0b"></div><span style="color:#b45309">Observation</span></div>
-    <div class="legend-chip"><div class="legend-dot" style="background:#06b6d4"></div><span style="color:#0e7490">Réanalyse</span></div>
-    <div class="legend-chip"><div class="legend-dot" style="background:#8b5cf6"></div><span style="color:#6d28d9">Projection</span></div>
-    <div class="legend-chip"><div class="legend-dot" style="background:#f97316"></div><span style="color:#c2410c">Satellite</span></div>
+    <div class="lang-toggle">
+      <button class="lang-btn active" onclick="setLang('en')" id="lang-en">EN</button>
+      <button class="lang-btn" onclick="setLang('fr')" id="lang-fr">FR</button>
+    </div>
+    <div class="legend-chip"><div class="legend-dot" style="background:#f59e0b"></div><span style="color:#b45309" data-i18n="cat.obs">Observation</span></div>
+    <div class="legend-chip"><div class="legend-dot" style="background:#06b6d4"></div><span style="color:#0e7490" data-i18n="cat.rea">Reanalysis</span></div>
+    <div class="legend-chip"><div class="legend-dot" style="background:#8b5cf6"></div><span style="color:#6d28d9" data-i18n="cat.proj">Projection</span></div>
+    <div class="legend-chip"><div class="legend-dot" style="background:#f97316"></div><span style="color:#c2410c" data-i18n="cat.sat">Satellite</span></div>
   </div>
 </div>
 <div class="tabs" id="tabs"></div>
 <div class="main" id="content"></div>
 <script>
+// ============ i18n DICTIONARY ============
+const I18N={
+  en:{
+    "h.title":"Climate Data",
+    "h.region":"SWIO",
+    "h.subtitle":"In situ observations · Reanalyses · Models · Satellite — South-West Indian Ocean",
+    "cat.obs":"Observation",
+    "cat.rea":"Reanalysis",
+    "cat.proj":"Projection",
+    "cat.sat":"Satellite",
+    "tab.map":"🗺️ Map & Stations",
+    "tab.matrix":"📊 Data Matrix",
+    "tab.chain":"🔗 CMIP & ONDES Chain",
+    "panel.sources":"sources available",
+    "stat.area":"Area",
+    "stat.peak":"Highest point",
+    "panel.obs":"In situ observations",
+    "panel.rea":"Reanalyses",
+    "panel.proj":"Projections",
+    "panel.sat":"Satellite",
+    "panel.partial":"(partial)",
+    "placeholder.lead":"Click a territory to see <b>available</b> data",
+    "placeholder.categories":"Categories:",
+    "placeholder.obs":"In situ observations",
+    "placeholder.rea":"Reanalyses",
+    "placeholder.proj":"Projections",
+    "placeholder.sat":"Satellite",
+    "toggle.obs":"Obs. stations",
+    "legend.meteo":"Weather",
+    "legend.solar":"Solar",
+    "legend.bsrn":"BSRN",
+    "legend.terr":"Territory",
+    "scale":"~1000 km",
+    "matrix.filter.all":"All",
+    "matrix.col.type":"Type",
+    "matrix.col.dataset":"Dataset",
+    "matrix.col.source":"Source",
+    "matrix.col.res":"Resolution",
+    "matrix.col.cmip":"CMIP",
+    "avail.yes":"Available",
+    "avail.partial":"Partial",
+    "avail.no":"Not available",
+    "chain.title":"Modelling chain —",
+    "chain.subtitle":"Observations, reanalyses, CMIP6 projections and ONDES downscaling",
+    "chain.cmip6.title":"CMIP6 — SSP scenarios",
+    "chain.cmip6.gcms":"GCMs: CNRM-ESM2-1, 22 models (~50–200 km)",
+    "chain.ondes.title":"ONDES — ML downscaling (LIGHTEN-IO)",
+    "chain.ondes.input":"<b>Input:</b> GCM fields (wind, T, humidity, 850/500 hPa geopotential) + high-resolution topography",
+    "chain.ondes.output":"<b>Output:</b> High-resolution surface variables (radiation, T, wind, precipitation)",
+    "chain.ondes.valid":"<b>Validation:</b> In situ obs (IOS-net, Météo-France, BSRN) + bias-corrected BRIO",
+    "chain.ondes.arch":"<b>Architecture:</b> CNN → U-Net with static topography",
+    "chain.obs.title":"In situ observations — Ground truth",
+    "chain.obs.sources":"IOS-net/SolarIO, Météo-France (0.03°), BSRN, NOAA ISD, GHCN-Daily",
+    "chain.rea.title":"Reanalyses",
+    "chain.corresp":"RCP ↔ SSP correspondence",
+    "rcp.low":"Low emissions",
+    "rcp.mid":"Intermediate",
+    "rcp.high":"High emissions",
+    // territories
+    "terr.comores":"Comoros","terr.mayotte":"Mayotte","terr.madagascar":"Madagascar","terr.maurice":"Mauritius","terr.seychelles":"Seychelles","terr.reunion":"La Réunion","terr.kenya":"Kenya",
+    // climates
+    "clim.tropmar":"Tropical humid maritime",
+    "clim.tropvar":"Varied tropical",
+    "clim.tropmar2":"Tropical maritime",
+    "clim.tropeq":"Tropical equatorial",
+    "clim.tropmnt":"Tropical mountainous",
+    "clim.eqvar":"Varied equatorial",
+    // dataset variables (EN)
+    "var.iosnet":"GHI, DHI, DNI, T, wind, humidity",
+    "var.mf":"Precipitation, Tmin, Tmax, wind, humidity, radiation",
+    "var.bsrn":"Radiation (metrological reference)",
+    "var.isd":"T, wind, rain, pressure",
+    "var.ghcn":"T, precipitation (long records)",
+    "var.maproom":"Precipitation (satellite + 25 rain gauges)",
+    "var.era5":"T, wind, humidity, geopotential, radiation",
+    "var.era5land":"T, precipitation, soil moisture",
+    "var.arome":"Full NWP variable set",
+    "var.cmip6":"T, precipitation, 850 hPa wind",
+    "var.aladin":"T, precipitation, wind, humidity, radiation",
+    "var.cordex":"T, precipitation, wind",
+    "var.chirps":"Precipitation (IR + stations)",
+    "var.gpm":"Satellite precipitation",
+    "var.glorys":"SST, currents, salinity",
+    "var.ostia":"Sea surface temperature",
+    "var.dem":"Topography",
+    "var.s2":"Multi-band optical imagery",
+    // model domain types
+    "dom.nwp":"NWP forecast",
+    "dom.cmip6proj":"CMIP6 projections",
+    "dom.ocean":"Ocean",
+    "dom.proj":"Projections",
+    // chain link types
+    "link.dyn":"Dynamical downscaling + bias correction (BRIO)",
+    "link.stat":"Statistical downscaling La Réunion (BRIO)",
+    "link.ml":"Neural network (LIGHTEN-IO)",
+    "link.dyn2":"Dynamical downscaling",
+    "link.atmforce":"Atmospheric forcing",
+    "link.sfcforce":"Surface forcing",
+    "link.ic":"Initial conditions",
+    "link.gt":"Ground truth",
+    // sources translated where useful
+    "src.energylab":"ENERGY-Lab",
+    "src.mf":"Météo-France DIOI",
+    "src.bsrn":"BSRN / AWI",
+    "src.noaa":"NOAA NCEI",
+    "src.noaa2":"NOAA",
+    "src.maproom":"DGM + CHIRPS",
+    "src.ecmwf":"ECMWF / Copernicus CDS",
+    "src.mf2":"Météo-France",
+    "src.esgf":"ESGF",
+    "src.cnrm":"CNRM / Météo-France (BRIO)",
+    "src.cordex":"CORDEX",
+    "src.chirps":"CHG / UC Santa Barbara",
+    "src.nasa":"NASA GES DISC",
+    "src.cmems":"Copernicus Marine",
+    "src.metoffice":"Met Office / Copernicus",
+    "src.copernicus":"Copernicus",
+    "src.esa":"ESA / Copernicus",
+    // chain link nodes
+    "node.cmip6_cnrm":"CMIP6 (CNRM-ESM2-1)",
+    "node.cmip6_22":"CMIP6 (22 GCMs)",
+    "node.cmip6_ondes":"CMIP6 GCMs → ONDES",
+    "node.cmip6_only":"CMIP6 GCMs",
+    "node.era5":"ERA5",
+    "node.era5_arpege":"ERA5 / ARPEGE",
+    "node.obs_in_situ":"In situ obs (IOS-net, MF, BSRN)",
+    "node.aladin":"ALADIN63 BRIO-SWIO (12→3 km)",
+    "node.cdft":"Statistical downscaling CDF-t (BC-WT)",
+    "node.unet":"ML downscaling (U-Net)",
+    "node.cordex":"CORDEX-CORE AFR-22",
+    "node.era5land":"ERA5-Land",
+    "node.glorys":"GLORYS12V1",
+    "node.arome_oi":"AROME Indian Ocean",
+    "node.valid_ondes":"ONDES validation",
+    "footer":"LIGHTEN-IO · ENERGY-Lab · Univ. La Réunion"
+  },
+  fr:{
+    "h.title":"Données Climat",
+    "h.region":"SOOI",
+    "h.subtitle":"Observations in situ · Réanalyses · Modèles · Satellite — Sud-Ouest de l'Océan Indien",
+    "cat.obs":"Observation",
+    "cat.rea":"Réanalyse",
+    "cat.proj":"Projection",
+    "cat.sat":"Satellite",
+    "tab.map":"🗺️ Carte & Stations",
+    "tab.matrix":"📊 Matrice Données",
+    "tab.chain":"🔗 Chaîne CMIP & ONDES",
+    "panel.sources":"sources disponibles",
+    "stat.area":"Superficie",
+    "stat.peak":"Point culminant",
+    "panel.obs":"Observations in situ",
+    "panel.rea":"Réanalyses",
+    "panel.proj":"Projections",
+    "panel.sat":"Satellite",
+    "panel.partial":"(partiel)",
+    "placeholder.lead":"Cliquez sur un territoire pour voir<br>les données <b>disponibles</b>",
+    "placeholder.categories":"Catégories :",
+    "placeholder.obs":"Observations in situ",
+    "placeholder.rea":"Réanalyses",
+    "placeholder.proj":"Projections",
+    "placeholder.sat":"Satellite",
+    "toggle.obs":"Stations obs.",
+    "legend.meteo":"Météo",
+    "legend.solar":"Solaire",
+    "legend.bsrn":"BSRN",
+    "legend.terr":"Territoire",
+    "scale":"~1000 km",
+    "matrix.filter.all":"Tous",
+    "matrix.col.type":"Type",
+    "matrix.col.dataset":"Dataset",
+    "matrix.col.source":"Source",
+    "matrix.col.res":"Résolution",
+    "matrix.col.cmip":"CMIP",
+    "avail.yes":"Disponible",
+    "avail.partial":"Partiel",
+    "avail.no":"Non dispo.",
+    "chain.title":"Chaîne de modélisation —",
+    "chain.subtitle":"Observations, réanalyses, projections CMIP6 et descente d'échelle ONDES",
+    "chain.cmip6.title":"CMIP6 — Scénarios SSP",
+    "chain.cmip6.gcms":"GCMs : CNRM-ESM2-1, 22 modèles (~50–200 km)",
+    "chain.ondes.title":"ONDES — Descente d'échelle ML (LIGHTEN-IO)",
+    "chain.ondes.input":"<b>Entrée :</b> Champs GCM (vent, T, humidité, géopotentiel 850/500 hPa) + topographie HR",
+    "chain.ondes.output":"<b>Sortie :</b> Variables surface haute résolution (rayonnement, T, vent, précipitations)",
+    "chain.ondes.valid":"<b>Validation :</b> Obs in situ (IOS-net, Météo-France, BSRN) + BRIO bias-corrigées",
+    "chain.ondes.arch":"<b>Architecture :</b> CNN → U-Net avec topographie statique",
+    "chain.obs.title":"Observations in situ — Vérité terrain",
+    "chain.obs.sources":"IOS-net/SolarIO, Météo-France (0.03°), BSRN, NOAA ISD, GHCN-Daily",
+    "chain.rea.title":"Réanalyses",
+    "chain.corresp":"Correspondance RCP ↔ SSP",
+    "rcp.low":"Faibles émissions",
+    "rcp.mid":"Intermédiaires",
+    "rcp.high":"Fortes émissions",
+    "terr.comores":"Comores","terr.mayotte":"Mayotte","terr.madagascar":"Madagascar","terr.maurice":"Maurice","terr.seychelles":"Seychelles","terr.reunion":"La Réunion","terr.kenya":"Kenya",
+    "clim.tropmar":"Tropical humide maritime",
+    "clim.tropvar":"Tropical varié",
+    "clim.tropmar2":"Tropical maritime",
+    "clim.tropeq":"Tropical équatorial",
+    "clim.tropmnt":"Tropical montagnard",
+    "clim.eqvar":"Équatorial varié",
+    "var.iosnet":"GHI, DHI, DNI, T, vent, humidité",
+    "var.mf":"Précipitations, Tmin, Tmax, vent, humidité, rayonnement",
+    "var.bsrn":"Rayonnement (référence métrologique)",
+    "var.isd":"T, vent, pluie, pression",
+    "var.ghcn":"T, précipitations (séries longues)",
+    "var.maproom":"Précipitations (satellite + 25 pluviomètres)",
+    "var.era5":"T, vent, humidité, géopotentiel, rayonnement",
+    "var.era5land":"T, précipitations, humidité sol",
+    "var.arome":"Ensemble variables NWP",
+    "var.cmip6":"T, précipitations, vent 850 hPa",
+    "var.aladin":"T, précipitations, vent, humidité, rayonnement",
+    "var.cordex":"T, précipitations, vent",
+    "var.chirps":"Précipitations (IR + stations)",
+    "var.gpm":"Précipitations satellite",
+    "var.glorys":"SST, courants, salinité",
+    "var.ostia":"Température surface mer",
+    "var.dem":"Topographie",
+    "var.s2":"Imagerie optique multibande",
+    "dom.nwp":"Prévision NWP",
+    "dom.cmip6proj":"Projections CMIP6",
+    "dom.ocean":"Océan",
+    "dom.proj":"Projections",
+    "link.dyn":"Forçage dynamique + correction biais (BRIO)",
+    "link.stat":"Descente statistique La Réunion (BRIO)",
+    "link.ml":"Réseau de neurones (LIGHTEN-IO)",
+    "link.dyn2":"Forçage dynamique",
+    "link.atmforce":"Forçage atmosphérique",
+    "link.sfcforce":"Forçage de surface",
+    "link.ic":"Conditions initiales",
+    "link.gt":"Vérité terrain",
+    "src.energylab":"ENERGY-Lab",
+    "src.mf":"Météo-France DIOI",
+    "src.bsrn":"BSRN / AWI",
+    "src.noaa":"NOAA NCEI",
+    "src.noaa2":"NOAA",
+    "src.maproom":"DGM + CHIRPS",
+    "src.ecmwf":"ECMWF / Copernicus CDS",
+    "src.mf2":"Météo-France",
+    "src.esgf":"ESGF",
+    "src.cnrm":"CNRM / Météo-France (BRIO)",
+    "src.cordex":"CORDEX",
+    "src.chirps":"CHG / UC Santa Barbara",
+    "src.nasa":"NASA GES DISC",
+    "src.cmems":"Copernicus Marine",
+    "src.metoffice":"Met Office / Copernicus",
+    "src.copernicus":"Copernicus",
+    "src.esa":"ESA / Copernicus",
+    "node.cmip6_cnrm":"CMIP6 (CNRM-ESM2-1)",
+    "node.cmip6_22":"CMIP6 (22 GCMs)",
+    "node.cmip6_ondes":"CMIP6 GCMs → ONDES",
+    "node.cmip6_only":"CMIP6 GCMs",
+    "node.era5":"ERA5",
+    "node.era5_arpege":"ERA5 / ARPEGE",
+    "node.obs_in_situ":"Obs in situ (IOS-net, MF, BSRN)",
+    "node.aladin":"ALADIN63 BRIO-SWIO (12→3 km)",
+    "node.cdft":"Descente statistique CDF-t (BC-WT)",
+    "node.unet":"Descente d'échelle ML (U-Net)",
+    "node.cordex":"CORDEX-CORE AFR-22",
+    "node.era5land":"ERA5-Land",
+    "node.glorys":"GLORYS12V1",
+    "node.arome_oi":"AROME Océan Indien",
+    "node.valid_ondes":"Validation ONDES",
+    "footer":"LIGHTEN-IO · ENERGY-Lab · Univ. La Réunion"
+  }
+};
+function T(k){return (I18N[state.lang]&&I18N[state.lang][k])||k}
+
+// ============ DATA ============
 const territories=[
-{id:"comores",name:"Comores",lat:-12.2,lon:44.3,area:1862,peak:2361,climate:"Tropical humide maritime",flag:"🇰🇲"},
-{id:"mayotte",name:"Mayotte",lat:-12.8,lon:45.15,area:374,peak:660,climate:"Tropical humide maritime",flag:"🇾🇹"},
-{id:"madagascar",name:"Madagascar",lat:-18.9,lon:47.5,area:587041,peak:2876,climate:"Tropical varié",flag:"🇲🇬"},
-{id:"maurice",name:"Maurice",lat:-20.3,lon:57.6,area:2040,peak:828,climate:"Tropical maritime",flag:"🇲🇺"},
-{id:"seychelles",name:"Seychelles",lat:-4.7,lon:55.5,area:459,peak:905,climate:"Tropical équatorial",flag:"🇸🇨"},
-{id:"reunion",name:"La Réunion",lat:-21.1,lon:55.5,area:2512,peak:3069,climate:"Tropical montagnard",flag:"🇷🇪"},
-{id:"kenya",name:"Kenya",lat:-0.02,lon:37.9,area:580367,peak:5199,climate:"Équatorial varié",flag:"🇰🇪"},
+{id:"comores",lat:-12.2,lon:44.3,area:1862,peak:2361,climateKey:"clim.tropmar",flag:"🇰🇲"},
+{id:"mayotte",lat:-12.8,lon:45.15,area:374,peak:660,climateKey:"clim.tropmar",flag:"🇾🇹"},
+{id:"madagascar",lat:-18.9,lon:47.5,area:587041,peak:2876,climateKey:"clim.tropvar",flag:"🇲🇬"},
+{id:"maurice",lat:-20.3,lon:57.6,area:2040,peak:828,climateKey:"clim.tropmar2",flag:"🇲🇺"},
+{id:"seychelles",lat:-4.7,lon:55.5,area:459,peak:905,climateKey:"clim.tropeq",flag:"🇸🇨"},
+{id:"reunion",lat:-21.1,lon:55.5,area:2512,peak:3069,climateKey:"clim.tropmnt",flag:"🇷🇪"},
+{id:"kenya",lat:-0.02,lon:37.9,area:580367,peak:5199,climateKey:"clim.eqvar",flag:"🇰🇪"},
 ];
 const obsStations=[
 {name:"BSRN Saint-Denis",lat:-20.9,lon:55.48,type:"radiation",color:"#f59e0b",source:"BSRN"},
 {name:"IOS-net Réunion",lat:-21.15,lon:55.45,type:"solar",color:"#eab308",source:"ENERGY-Lab"},
-{name:"IOS-net Maurice",lat:-20.2,lon:57.5,type:"solar",color:"#eab308",source:"ENERGY-Lab"},
+{name:"IOS-net Mauritius",lat:-20.2,lon:57.5,type:"solar",color:"#eab308",source:"ENERGY-Lab"},
 {name:"IOS-net Rodrigues",lat:-19.7,lon:63.4,type:"solar",color:"#eab308",source:"ENERGY-Lab"},
 {name:"IOS-net Seychelles",lat:-4.6,lon:55.45,type:"solar",color:"#eab308",source:"ENERGY-Lab"},
 {name:"Météo-France Gillot",lat:-20.89,lon:55.53,type:"meteo",color:"#ea580c",source:"Météo-France"},
 {name:"Météo-France Pierrefonds",lat:-21.32,lon:55.43,type:"meteo",color:"#ea580c",source:"Météo-France"},
 {name:"Pamandzi (Mayotte)",lat:-12.76,lon:45.28,type:"meteo",color:"#ea580c",source:"Météo-France"},
 {name:"Maproom Madagascar",lat:-18.9,lon:47.5,type:"combined",color:"#ea580c",source:"DGM Madagascar"},
-{name:"Moroni (Comores)",lat:-11.7,lon:43.25,type:"meteo",color:"#ea580c",source:"ANACM"},
-{name:"Port Louis (Maurice)",lat:-20.16,lon:57.5,type:"meteo",color:"#ea580c",source:"MMS"},
+{name:"Moroni (Comoros)",lat:-11.7,lon:43.25,type:"meteo",color:"#ea580c",source:"ANACM"},
+{name:"Port Louis (Mauritius)",lat:-20.16,lon:57.5,type:"meteo",color:"#ea580c",source:"MMS"},
 {name:"Mahé (Seychelles)",lat:-4.67,lon:55.53,type:"meteo",color:"#ea580c",source:"SMA"},
 {name:"NOAA ISD Kenya",lat:-1.3,lon:36.9,type:"meteo",color:"#ea580c",source:"NOAA ISD"},
 ];
 const modelDomains=[
-{id:"arome",name:"AROME OI",res:"2,5 km",color:"#0891b2",bounds:[[-25.9,32.75],[-7.25,67.6]],type:"Prévision NWP"},
-{id:"aladin_swio",name:"ALADIN63 BRIO-SWIO",res:"12→3 km",color:"#dc2626",bounds:[[-30,30],[-5,75]],type:"Projections CMIP6"},
-{id:"winds",name:"WINDS (CROCO)",res:"~2 km",color:"#d97706",bounds:[[-23.5,30],[0,77.5]],type:"Océan"},
-{id:"cordex",name:"CORDEX-Africa",res:"~25–50 km",color:"#8b5cf6",bounds:[[-45.76,-24.64],[42.24,60.28]],type:"Projections"},
+{id:"arome",name:"AROME OI",res:"2.5 km",color:"#0891b2",bounds:[[-25.9,32.75],[-7.25,67.6]],typeKey:"dom.nwp"},
+{id:"aladin_swio",name:"ALADIN63 BRIO-SWIO",res:"12→3 km",color:"#dc2626",bounds:[[-30,30],[-5,75]],typeKey:"dom.cmip6proj"},
+{id:"winds",name:"WINDS (CROCO)",res:"~2 km",color:"#d97706",bounds:[[-23.5,30],[0,77.5]],typeKey:"dom.ocean"},
+{id:"cordex",name:"CORDEX-Africa",res:"~25–50 km",color:"#8b5cf6",bounds:[[-45.76,-24.64],[42.24,60.28]],typeKey:"dom.proj"},
 ];
-const dataTypeColors={"Observation":"#f59e0b","Réanalyse":"#06b6d4","Projection":"#8b5cf6","Satellite":"#f97316"};
+const dataTypeColors={"Observation":"#f59e0b","Reanalysis":"#06b6d4","Projection":"#8b5cf6","Satellite":"#f97316"};
+// Use domain category KEY (stable, not language-dependent)
 const datasets=[
-{name:"IOS-net / SolarIO",domain:"Observation",res:"Station",cmip:"none",source:"ENERGY-Lab",vars:"GHI, DHI, DNI, T, vent, humidité",avail:{comores:false,mayotte:false,madagascar:false,maurice:true,seychelles:true,reunion:true,kenya:false}},
-{name:"Météo-France (grillé 0.03°)",domain:"Observation",res:"~3 km",cmip:"none",source:"Météo-France DIOI",vars:"Précipitations, Tmin, Tmax, vent, humidité, rayonnement",avail:{comores:false,mayotte:true,madagascar:false,maurice:false,seychelles:false,reunion:true,kenya:false}},
-{name:"BSRN Saint-Denis",domain:"Observation",res:"Station",cmip:"none",source:"BSRN / AWI",vars:"Rayonnement (référence métrologique)",avail:{comores:false,mayotte:false,madagascar:false,maurice:false,seychelles:false,reunion:true,kenya:false}},
-{name:"NOAA ISD / GSOD",domain:"Observation",res:"Station",cmip:"none",source:"NOAA NCEI",vars:"T, vent, pluie, pression",avail:{comores:true,mayotte:true,madagascar:true,maurice:true,seychelles:true,reunion:true,kenya:true}},
-{name:"GHCN-Daily",domain:"Observation",res:"Station",cmip:"none",source:"NOAA",vars:"T, précipitations (séries longues)",avail:{comores:"partial",mayotte:"partial",madagascar:true,maurice:true,seychelles:"partial",reunion:true,kenya:true}},
-{name:"Maproom Madagascar",domain:"Observation",res:"~4 km",cmip:"none",source:"DGM + CHIRPS",vars:"Précipitations (satellite + 25 pluviomètres)",avail:{comores:false,mayotte:false,madagascar:true,maurice:false,seychelles:false,reunion:false,kenya:false}},
-{name:"ERA5",domain:"Réanalyse",res:"0,25° (~28 km)",cmip:"none",source:"ECMWF / Copernicus CDS",vars:"T, vent, humidité, géopotentiel, rayonnement",avail:{comores:true,mayotte:true,madagascar:true,maurice:true,seychelles:true,reunion:true,kenya:true}},
-{name:"ERA5-Land",domain:"Réanalyse",res:"0,1° (~9 km)",cmip:"none",source:"ECMWF / Copernicus CDS",vars:"T, précipitations, humidité sol",avail:{comores:true,mayotte:true,madagascar:true,maurice:true,seychelles:true,reunion:true,kenya:true}},
-{name:"AROME OI",domain:"Réanalyse",res:"2,5 km",cmip:"none",source:"Météo-France",vars:"Ensemble variables NWP",avail:{comores:true,mayotte:true,madagascar:true,maurice:true,seychelles:"partial",reunion:true,kenya:false}},
-{name:"CMIP6 (22 GCMs)",domain:"Projection",res:"~50–200 km",cmip:"cmip6",source:"ESGF",vars:"T, précipitations, vent 850 hPa",avail:{comores:true,mayotte:true,madagascar:true,maurice:true,seychelles:true,reunion:true,kenya:true}},
-{name:"ALADIN63 BRIO-SWIO",domain:"Projection",res:"12→3 km",cmip:"cmip6",source:"CNRM / Météo-France (BRIO)",vars:"T, précipitations, vent, humidité, rayonnement",avail:{comores:true,mayotte:true,madagascar:true,maurice:true,seychelles:true,reunion:true,kenya:false}},
-{name:"CORDEX-CORE AFR-22",domain:"Projection",res:"~25 km",cmip:"cmip5+6",source:"CORDEX",vars:"T, précipitations, vent",avail:{comores:true,mayotte:true,madagascar:true,maurice:true,seychelles:true,reunion:true,kenya:true}},
-{name:"CHIRPS v2",domain:"Satellite",res:"~5 km",cmip:"none",source:"CHG / UC Santa Barbara",vars:"Précipitations (IR + stations)",avail:{comores:true,mayotte:true,madagascar:true,maurice:true,seychelles:true,reunion:true,kenya:true}},
-{name:"GPM IMERG",domain:"Satellite",res:"~10 km",cmip:"none",source:"NASA GES DISC",vars:"Précipitations satellite",avail:{comores:true,mayotte:true,madagascar:true,maurice:true,seychelles:true,reunion:true,kenya:true}},
-{name:"GLORYS12V1",domain:"Satellite",res:"1/12° (~8 km)",cmip:"none",source:"Copernicus Marine",vars:"SST, courants, salinité",avail:{comores:true,mayotte:true,madagascar:true,maurice:true,seychelles:true,reunion:true,kenya:true}},
-{name:"OSTIA SST",domain:"Satellite",res:"~5 km",cmip:"none",source:"Met Office / Copernicus",vars:"Température surface mer",avail:{comores:true,mayotte:true,madagascar:true,maurice:true,seychelles:true,reunion:true,kenya:true}},
-{name:"Copernicus DEM",domain:"Satellite",res:"30 m",cmip:"none",source:"Copernicus",vars:"Topographie",avail:{comores:true,mayotte:true,madagascar:true,maurice:true,seychelles:true,reunion:true,kenya:true}},
-{name:"Sentinel-2",domain:"Satellite",res:"10–20 m",cmip:"none",source:"ESA / Copernicus",vars:"Imagerie optique multibande",avail:{comores:true,mayotte:true,madagascar:true,maurice:true,seychelles:true,reunion:true,kenya:true}},
+{name:"IOS-net / SolarIO",cat:"Observation",res:"Station",cmip:"none",srcKey:"src.energylab",varKey:"var.iosnet",avail:{comores:false,mayotte:false,madagascar:false,maurice:true,seychelles:true,reunion:true,kenya:false}},
+{name:"Météo-France (gridded 0.03°)",cat:"Observation",res:"~3 km",cmip:"none",srcKey:"src.mf",varKey:"var.mf",avail:{comores:false,mayotte:true,madagascar:false,maurice:false,seychelles:false,reunion:true,kenya:false}},
+{name:"BSRN Saint-Denis",cat:"Observation",res:"Station",cmip:"none",srcKey:"src.bsrn",varKey:"var.bsrn",avail:{comores:false,mayotte:false,madagascar:false,maurice:false,seychelles:false,reunion:true,kenya:false}},
+{name:"NOAA ISD / GSOD",cat:"Observation",res:"Station",cmip:"none",srcKey:"src.noaa",varKey:"var.isd",avail:{comores:true,mayotte:true,madagascar:true,maurice:true,seychelles:true,reunion:true,kenya:true}},
+{name:"GHCN-Daily",cat:"Observation",res:"Station",cmip:"none",srcKey:"src.noaa2",varKey:"var.ghcn",avail:{comores:"partial",mayotte:"partial",madagascar:true,maurice:true,seychelles:"partial",reunion:true,kenya:true}},
+{name:"Maproom Madagascar",cat:"Observation",res:"~4 km",cmip:"none",srcKey:"src.maproom",varKey:"var.maproom",avail:{comores:false,mayotte:false,madagascar:true,maurice:false,seychelles:false,reunion:false,kenya:false}},
+{name:"ERA5",cat:"Reanalysis",res:"0.25° (~28 km)",cmip:"none",srcKey:"src.ecmwf",varKey:"var.era5",avail:{comores:true,mayotte:true,madagascar:true,maurice:true,seychelles:true,reunion:true,kenya:true}},
+{name:"ERA5-Land",cat:"Reanalysis",res:"0.1° (~9 km)",cmip:"none",srcKey:"src.ecmwf",varKey:"var.era5land",avail:{comores:true,mayotte:true,madagascar:true,maurice:true,seychelles:true,reunion:true,kenya:true}},
+{name:"AROME OI",cat:"Reanalysis",res:"2.5 km",cmip:"none",srcKey:"src.mf2",varKey:"var.arome",avail:{comores:true,mayotte:true,madagascar:true,maurice:true,seychelles:"partial",reunion:true,kenya:false}},
+{name:"CMIP6 (22 GCMs)",cat:"Projection",res:"~50–200 km",cmip:"cmip6",srcKey:"src.esgf",varKey:"var.cmip6",avail:{comores:true,mayotte:true,madagascar:true,maurice:true,seychelles:true,reunion:true,kenya:true}},
+{name:"ALADIN63 BRIO-SWIO",cat:"Projection",res:"12→3 km",cmip:"cmip6",srcKey:"src.cnrm",varKey:"var.aladin",avail:{comores:true,mayotte:true,madagascar:true,maurice:true,seychelles:true,reunion:true,kenya:false}},
+{name:"CORDEX-CORE AFR-22",cat:"Projection",res:"~25 km",cmip:"cmip5+6",srcKey:"src.cordex",varKey:"var.cordex",avail:{comores:true,mayotte:true,madagascar:true,maurice:true,seychelles:true,reunion:true,kenya:true}},
+{name:"CHIRPS v2",cat:"Satellite",res:"~5 km",cmip:"none",srcKey:"src.chirps",varKey:"var.chirps",avail:{comores:true,mayotte:true,madagascar:true,maurice:true,seychelles:true,reunion:true,kenya:true}},
+{name:"GPM IMERG",cat:"Satellite",res:"~10 km",cmip:"none",srcKey:"src.nasa",varKey:"var.gpm",avail:{comores:true,mayotte:true,madagascar:true,maurice:true,seychelles:true,reunion:true,kenya:true}},
+{name:"GLORYS12V1",cat:"Satellite",res:"1/12° (~8 km)",cmip:"none",srcKey:"src.cmems",varKey:"var.glorys",avail:{comores:true,mayotte:true,madagascar:true,maurice:true,seychelles:true,reunion:true,kenya:true}},
+{name:"OSTIA SST",cat:"Satellite",res:"~5 km",cmip:"none",srcKey:"src.metoffice",varKey:"var.ostia",avail:{comores:true,mayotte:true,madagascar:true,maurice:true,seychelles:true,reunion:true,kenya:true}},
+{name:"Copernicus DEM",cat:"Satellite",res:"30 m",cmip:"none",srcKey:"src.copernicus",varKey:"var.dem",avail:{comores:true,mayotte:true,madagascar:true,maurice:true,seychelles:true,reunion:true,kenya:true}},
+{name:"Sentinel-2",cat:"Satellite",res:"10–20 m",cmip:"none",srcKey:"src.esa",varKey:"var.s2",avail:{comores:true,mayotte:true,madagascar:true,maurice:true,seychelles:true,reunion:true,kenya:true}},
 ];
 const cmipChain=[
-{from:"CMIP6 (CNRM-ESM2-1)",to:"ALADIN63 BRIO-SWIO (12→3 km)",scenario:"SSP1-2.6, SSP2-4.5, SSP5-8.5",type:"Forçage dynamique + correction biais (BRIO)"},
-{from:"CMIP6 (22 GCMs)",to:"Descente statistique CDF-t (BC-WT)",scenario:"SSP1-2.6, SSP5-8.5",type:"Descente statistique La Réunion (BRIO)"},
-{from:"CMIP6 GCMs → ONDES",to:"Descente d'échelle ML (U-Net)",scenario:"SSP1-2.6, SSP2-4.5, SSP5-8.5",type:"Réseau de neurones (LIGHTEN-IO)"},
-{from:"CMIP6 GCMs",to:"CORDEX-CORE AFR-22",scenario:"SSP1-2.6, SSP3-7.0, SSP5-8.5",type:"Forçage dynamique"},
-{from:"ERA5",to:"ERA5-Land",scenario:"—",type:"Forçage atmosphérique"},
-{from:"ERA5",to:"GLORYS12V1",scenario:"—",type:"Forçage de surface"},
-{from:"ERA5 / ARPEGE",to:"AROME Océan Indien",scenario:"—",type:"Conditions initiales"},
-{from:"Obs in situ (IOS-net, MF, BSRN)",to:"Validation ONDES",scenario:"—",type:"Vérité terrain"},
+{fromKey:"node.cmip6_cnrm",toKey:"node.aladin",scenario:"SSP1-2.6, SSP2-4.5, SSP5-8.5",typeKey:"link.dyn"},
+{fromKey:"node.cmip6_22",toKey:"node.cdft",scenario:"SSP1-2.6, SSP5-8.5",typeKey:"link.stat"},
+{fromKey:"node.cmip6_ondes",toKey:"node.unet",scenario:"SSP1-2.6, SSP2-4.5, SSP5-8.5",typeKey:"link.ml"},
+{fromKey:"node.cmip6_only",toKey:"node.cordex",scenario:"SSP1-2.6, SSP3-7.0, SSP5-8.5",typeKey:"link.dyn2"},
+{fromKey:"node.era5",toKey:"node.era5land",scenario:"—",typeKey:"link.atmforce"},
+{fromKey:"node.era5",toKey:"node.glorys",scenario:"—",typeKey:"link.sfcforce"},
+{fromKey:"node.era5_arpege",toKey:"node.arome_oi",scenario:"—",typeKey:"link.ic"},
+{fromKey:"node.obs_in_situ",toKey:"node.valid_ondes",scenario:"—",typeKey:"link.gt"},
 ];
-let state={tab:"map",selectedTerritory:null,visibleDomains:["arome","aladin_swio"],showObs:true,filterDomain:"all"};
+
+// ============ STATE ============
+let state={lang:"en",tab:"map",selectedTerritory:null,visibleDomains:["arome","aladin_swio"],showObs:true,filterDomain:"all"};
 let coastlineData=null;
 
 function project(lon,lat){
@@ -210,8 +484,26 @@ function project(lon,lat){
 function availIcon(v){if(v===true)return'<span class="avail-yes">✓</span>';if(v==="partial")return'<span class="avail-partial">○</span>';return'<span class="avail-no">✗</span>'}
 function cmipBadge(c){if(c==="cmip6")return' <span class="badge badge-cmip6">CMIP6</span>';if(c==="cmip5+6")return' <span class="badge badge-cmip5-6">CMIP5/6</span>';return''}
 
+function setLang(lang){
+  state.lang=lang;
+  document.documentElement.lang=lang;
+  document.getElementById("lang-en").classList.toggle("active",lang==="en");
+  document.getElementById("lang-fr").classList.toggle("active",lang==="fr");
+  // update static header bits
+  document.getElementById("h-title").textContent=T("h.title");
+  document.getElementById("h-region").textContent=T("h.region");
+  document.getElementById("h-subtitle").textContent=T("h.subtitle");
+  document.title=lang==="en"?"LIGHTEN-IO — SWIO Climate Data":"LIGHTEN-IO — Données Climat SOOI";
+  document.querySelectorAll("[data-i18n]").forEach(el=>{el.textContent=T(el.getAttribute("data-i18n"))});
+  render();
+}
+
 function render(){
-document.getElementById("tabs").innerHTML=[{id:"map",label:"🗺️ Carte & Stations"},{id:"matrix",label:"📊 Matrice Données"},{id:"chain",label:"🔗 Chaîne CMIP & ONDES"}].map(t=>`<button class="tab-btn ${state.tab===t.id?'active':''}" onclick="setState({tab:'${t.id}'})">${t.label}</button>`).join("");
+document.getElementById("tabs").innerHTML=[
+  {id:"map",labelKey:"tab.map"},
+  {id:"matrix",labelKey:"tab.matrix"},
+  {id:"chain",labelKey:"tab.chain"}
+].map(t=>`<button class="tab-btn ${state.tab===t.id?'active':''}" onclick="setState({tab:'${t.id}'})">${T(t.labelKey)}</button>`).join("");
 const el=document.getElementById("content");
 if(state.tab==="map")renderMap(el);else if(state.tab==="matrix")renderMatrix(el);else renderChain(el);
 }
@@ -222,48 +514,49 @@ let svg='';
 [-25,-20,-15,-10,-5].forEach(lat=>{const[,y]=project(0,lat);svg+=`<line x1="0" x2="800" y1="${y}" y2="${y}" stroke="#e2e8f0" stroke-width="0.3"/>`});
 [35,40,45,50,55,60,65].forEach(lon=>{const[x]=project(lon,0);svg+=`<line y1="0" y2="560" x1="${x}" x2="${x}" stroke="#e2e8f0" stroke-width="0.3"/>`});
 if(coastlineData){const geoms=coastlineData.type==="FeatureCollection"?coastlineData.features.map(f=>f.geometry):[coastlineData.geometry||coastlineData];geoms.forEach(geom=>{const coords=geom.type==="MultiPolygon"?geom.coordinates.flat():geom.coordinates;coords.forEach(ring=>{let d="";ring.forEach((pt,i)=>{const[x,y]=project(pt[0],pt[1]);d+=(i===0?"M":"L")+x.toFixed(1)+","+y.toFixed(1)});d+="Z";svg+=`<path d="${d}" fill="#e8ecf1" stroke="#b0bec5" stroke-width="0.5"/>`})})}
-modelDomains.forEach(dm=>{if(!state.visibleDomains.includes(dm.id))return;const[x1,y1]=project(dm.bounds[0][1],dm.bounds[0][0]);const[x2,y2]=project(dm.bounds[1][1],dm.bounds[1][0]);const x=Math.min(x1,x2),y=Math.min(y1,y2),w=Math.abs(x2-x1),h=Math.abs(y2-y1);svg+=`<rect x="${x}" y="${y}" width="${w}" height="${h}" fill="${dm.color}" opacity="0.05" stroke="${dm.color}" stroke-width="1.2" stroke-dasharray="5,3" rx="2"/>`;svg+=`<text x="${x+4}" y="${y+12}" fill="${dm.color}" font-size="9" font-family="'JetBrains Mono',monospace" font-weight="600">${dm.name}</text>`;svg+=`<text x="${x+4}" y="${y+22}" fill="${dm.color}" font-size="7.5" font-family="'JetBrains Mono',monospace" opacity="0.6">${dm.res} — ${dm.type}</text>`});
+modelDomains.forEach(dm=>{if(!state.visibleDomains.includes(dm.id))return;const[x1,y1]=project(dm.bounds[0][1],dm.bounds[0][0]);const[x2,y2]=project(dm.bounds[1][1],dm.bounds[1][0]);const x=Math.min(x1,x2),y=Math.min(y1,y2),w=Math.abs(x2-x1),h=Math.abs(y2-y1);svg+=`<rect x="${x}" y="${y}" width="${w}" height="${h}" fill="${dm.color}" opacity="0.05" stroke="${dm.color}" stroke-width="1.2" stroke-dasharray="5,3" rx="2"/>`;svg+=`<text x="${x+4}" y="${y+12}" fill="${dm.color}" font-size="9" font-family="'JetBrains Mono',monospace" font-weight="600">${dm.name}</text>`;svg+=`<text x="${x+4}" y="${y+22}" fill="${dm.color}" font-size="7.5" font-family="'JetBrains Mono',monospace" opacity="0.6">${dm.res} — ${T(dm.typeKey)}</text>`});
 if(state.showObs){obsStations.forEach(st=>{const[cx,cy]=project(st.lon,st.lat);svg+=`<circle cx="${cx}" cy="${cy}" r="3" fill="none" stroke="${st.color}" stroke-width="0.6" opacity="0.4"><animate attributeName="r" from="3" to="10" dur="2.5s" repeatCount="indefinite"/><animate attributeName="opacity" from="0.4" to="0" dur="2.5s" repeatCount="indefinite"/></circle>`;if(st.type==="radiation"){svg+=`<polygon points="${cx},${cy-4.5} ${cx+3.5},${cy} ${cx},${cy+4.5} ${cx-3.5},${cy}" fill="${st.color}" stroke="#fff" stroke-width="0.8"/>`}else if(st.type==="solar"){svg+=`<polygon points="${cx},${cy-4} ${cx+3.5},${cy+2.5} ${cx-3.5},${cy+2.5}" fill="${st.color}" stroke="#fff" stroke-width="0.8"/>`}else{svg+=`<rect x="${cx-3}" y="${cy-3}" width="6" height="6" fill="${st.color}" stroke="#fff" stroke-width="0.8" rx="1"/>`}svg+=`<title>${st.name} (${st.source})</title>`})}
-territories.forEach(tr=>{const[cx,cy]=project(tr.lon,tr.lat);const isSel=state.selectedTerritory===tr.id;const r=isSel?9:6,fc=isSel?"#0891b2":"#0369a1";if(isSel){svg+=`<circle cx="${cx}" cy="${cy}" r="${r+3}" fill="none" stroke="#0891b2" stroke-width="1.2" opacity="0.4"><animate attributeName="r" from="${r+2}" to="${r+10}" dur="1.5s" repeatCount="indefinite"/><animate attributeName="opacity" from="0.5" to="0" dur="1.5s" repeatCount="indefinite"/></circle>`}svg+=`<circle cx="${cx}" cy="${cy}" r="${r+7}" fill="transparent" style="cursor:pointer" onclick="setState({selectedTerritory:'${tr.id}'})"/>`;svg+=`<circle cx="${cx}" cy="${cy}" r="${r}" fill="${fc}" stroke="#fff" stroke-width="1.5" style="pointer-events:none"/>`;svg+=`<text x="${cx+r+4}" y="${cy+4}" fill="#334155" font-size="10" font-family="'Outfit',sans-serif" font-weight="${isSel?700:500}" style="pointer-events:none">${tr.flag} ${tr.name}</text>`});
-svg+=`<g transform="translate(560,490)"><line x1="0" y1="0" x2="80" y2="0" stroke="#94a3b8" stroke-width="0.8"/><line x1="0" y1="-2" x2="0" y2="2" stroke="#94a3b8"/><line x1="80" y1="-2" x2="80" y2="2" stroke="#94a3b8"/><text x="40" y="12" fill="#94a3b8" font-size="8" text-anchor="middle" font-family="'JetBrains Mono',monospace">~1000 km</text></g>`;
-svg+=`<text x="100" y="510" fill="#cbd5e1" font-size="8" font-family="'JetBrains Mono',monospace">LIGHTEN-IO · ENERGY-Lab · Univ. La Réunion</text>`;
+territories.forEach(tr=>{const[cx,cy]=project(tr.lon,tr.lat);const isSel=state.selectedTerritory===tr.id;const r=isSel?9:6,fc=isSel?"#0891b2":"#0369a1";if(isSel){svg+=`<circle cx="${cx}" cy="${cy}" r="${r+3}" fill="none" stroke="#0891b2" stroke-width="1.2" opacity="0.4"><animate attributeName="r" from="${r+2}" to="${r+10}" dur="1.5s" repeatCount="indefinite"/><animate attributeName="opacity" from="0.5" to="0" dur="1.5s" repeatCount="indefinite"/></circle>`}svg+=`<circle cx="${cx}" cy="${cy}" r="${r+7}" fill="transparent" style="cursor:pointer" onclick="setState({selectedTerritory:'${tr.id}'})"/>`;svg+=`<circle cx="${cx}" cy="${cy}" r="${r}" fill="${fc}" stroke="#fff" stroke-width="1.5" style="pointer-events:none"/>`;svg+=`<text x="${cx+r+4}" y="${cy+4}" fill="#334155" font-size="10" font-family="'Outfit',sans-serif" font-weight="${isSel?700:500}" style="pointer-events:none">${tr.flag} ${T("terr."+tr.id)}</text>`});
+svg+=`<g transform="translate(560,490)"><line x1="0" y1="0" x2="80" y2="0" stroke="#94a3b8" stroke-width="0.8"/><line x1="0" y1="-2" x2="0" y2="2" stroke="#94a3b8"/><line x1="80" y1="-2" x2="80" y2="2" stroke="#94a3b8"/><text x="40" y="12" fill="#94a3b8" font-size="8" text-anchor="middle" font-family="'JetBrains Mono',monospace">${T("scale")}</text></g>`;
+svg+=`<text x="100" y="510" fill="#cbd5e1" font-size="8" font-family="'JetBrains Mono',monospace">${T("footer")}</text>`;
 
 let side='';
 if(t){
-const grp=(dom)=>datasets.filter(d=>d.domain===dom&&(d.avail[t.id]===true||d.avail[t.id]==="partial"));
-const obs=grp("Observation"),rea=grp("Réanalyse"),mod=grp("Projection"),sat=grp("Satellite");
-const domainItemClass={"Observation":"ds-item-obs","Réanalyse":"ds-item-reanalysis","Projection":"ds-item-model","Satellite":"ds-item-satellite"};
-const renderG=(items,domain)=>items.map(ds=>{const av=ds.avail[t.id];const c=dataTypeColors[ds.domain];const p=av==="partial"?' <span style="font-size:10px;color:#d97706">(partiel)</span>':'';const cls=domainItemClass[domain]||'';return`<div class="ds-item ${cls}"><div class="ds-item-header"><div><span style="color:${c};margin-right:5px;font-size:10px">●</span><span class="ds-name">${ds.name}</span>${p}${cmipBadge(ds.cmip)}</div><span class="ds-res">${ds.res}</span></div><div class="ds-vars">${ds.vars||""}</div><div class="ds-meta">${ds.source||""}</div></div>`}).join("");
+const grp=(cat)=>datasets.filter(d=>d.cat===cat&&(d.avail[t.id]===true||d.avail[t.id]==="partial"));
+const obs=grp("Observation"),rea=grp("Reanalysis"),mod=grp("Projection"),sat=grp("Satellite");
+const catItemClass={"Observation":"ds-item-obs","Reanalysis":"ds-item-reanalysis","Projection":"ds-item-model","Satellite":"ds-item-satellite"};
+const renderG=(items,cat)=>items.map(ds=>{const av=ds.avail[t.id];const c=dataTypeColors[ds.cat];const p=av==="partial"?` <span style="font-size:10px;color:#d97706">${T("panel.partial")}</span>`:'';const cls=catItemClass[cat]||'';return`<div class="ds-item ${cls}"><div class="ds-item-header"><div><span style="color:${c};margin-right:5px;font-size:10px">●</span><span class="ds-name">${ds.name}</span>${p}${cmipBadge(ds.cmip)}</div><span class="ds-res">${ds.res}</span></div><div class="ds-vars">${T(ds.varKey)}</div><div class="ds-meta">${T(ds.srcKey)}</div></div>`}).join("");
 const total=obs.length+rea.length+mod.length+sat.length;
-side=`<h2 style="font-size:22px;font-weight:700;color:#0f172a;margin:0 0 4px">${t.flag} ${t.name}</h2><p style="font-size:13px;color:#94a3b8;margin:0 0 12px">${t.climate} — <b style="color:#0891b2">${total}</b> sources disponibles</p><div class="stat-grid"><div class="stat-card stat-card-area"><div class="stat-label">Superficie</div><div class="stat-value">${t.area.toLocaleString()} km²</div></div><div class="stat-card stat-card-peak"><div class="stat-label">Point culminant</div><div class="stat-value">${t.peak.toLocaleString()} m</div></div></div>${obs.length?`<div class="ds-section-title ds-section-obs">Observations in situ (${obs.length})</div>${renderG(obs,"Observation")}`:''}${rea.length?`<div class="ds-section-title ds-section-reanalysis">Réanalyses (${rea.length})</div>${renderG(rea,"Réanalyse")}`:''}${mod.length?`<div class="ds-section-title ds-section-model">Projections (${mod.length})</div>${renderG(mod,"Projection")}`:''}${sat.length?`<div class="ds-section-title ds-section-satellite">Satellite (${sat.length})</div>${renderG(sat,"Satellite")}`:''}`;
+side=`<h2 style="font-size:22px;font-weight:700;color:#0f172a;margin:0 0 4px">${t.flag} ${T("terr."+t.id)}</h2><p style="font-size:13px;color:#94a3b8;margin:0 0 12px">${T(t.climateKey)} — <b style="color:#0891b2">${total}</b> ${T("panel.sources")}</p><div class="stat-grid"><div class="stat-card stat-card-area"><div class="stat-label">${T("stat.area")}</div><div class="stat-value">${t.area.toLocaleString(state.lang==="en"?"en-US":"fr-FR")} km²</div></div><div class="stat-card stat-card-peak"><div class="stat-label">${T("stat.peak")}</div><div class="stat-value">${t.peak.toLocaleString(state.lang==="en"?"en-US":"fr-FR")} m</div></div></div>${obs.length?`<div class="ds-section-title ds-section-obs">${T("panel.obs")} (${obs.length})</div>${renderG(obs,"Observation")}`:''}${rea.length?`<div class="ds-section-title ds-section-reanalysis">${T("panel.rea")} (${rea.length})</div>${renderG(rea,"Reanalysis")}`:''}${mod.length?`<div class="ds-section-title ds-section-model">${T("panel.proj")} (${mod.length})</div>${renderG(mod,"Projection")}`:''}${sat.length?`<div class="ds-section-title ds-section-satellite">${T("panel.sat")} (${sat.length})</div>${renderG(sat,"Satellite")}`:''}`;
 }else{
-side=`<div class="placeholder"><div class="icon">🗺️</div><p>Cliquez sur un territoire pour voir<br>les données <b>disponibles</b></p><div style="margin-top:20px;text-align:left;padding:0 14px"><div style="font-size:13px;color:#64748b;margin-bottom:8px;font-weight:600">Catégories :</div><div style="font-size:13px;color:#b45309;margin-bottom:5px;display:flex;align-items:center;gap:6px"><span style="display:inline-block;width:10px;height:10px;border-radius:50%;background:#f59e0b"></span> Observations in situ</div><div style="font-size:13px;color:#0e7490;margin-bottom:5px;display:flex;align-items:center;gap:6px"><span style="display:inline-block;width:10px;height:10px;border-radius:50%;background:#06b6d4"></span> Réanalyses</div><div style="font-size:13px;color:#6d28d9;margin-bottom:5px;display:flex;align-items:center;gap:6px"><span style="display:inline-block;width:10px;height:10px;border-radius:50%;background:#8b5cf6"></span> Projections</div><div style="font-size:13px;color:#c2410c;display:flex;align-items:center;gap:6px"><span style="display:inline-block;width:10px;height:10px;border-radius:50%;background:#f97316"></span> Satellite</div></div></div>`
+side=`<div class="placeholder"><div class="icon">🗺️</div><p>${T("placeholder.lead")}</p><div style="margin-top:20px;text-align:left;padding:0 14px"><div style="font-size:13px;color:#64748b;margin-bottom:8px;font-weight:600">${T("placeholder.categories")}</div><div style="font-size:13px;color:#b45309;margin-bottom:5px;display:flex;align-items:center;gap:6px"><span style="display:inline-block;width:10px;height:10px;border-radius:50%;background:#f59e0b"></span> ${T("placeholder.obs")}</div><div style="font-size:13px;color:#0e7490;margin-bottom:5px;display:flex;align-items:center;gap:6px"><span style="display:inline-block;width:10px;height:10px;border-radius:50%;background:#06b6d4"></span> ${T("placeholder.rea")}</div><div style="font-size:13px;color:#6d28d9;margin-bottom:5px;display:flex;align-items:center;gap:6px"><span style="display:inline-block;width:10px;height:10px;border-radius:50%;background:#8b5cf6"></span> ${T("placeholder.proj")}</div><div style="font-size:13px;color:#c2410c;display:flex;align-items:center;gap:6px"><span style="display:inline-block;width:10px;height:10px;border-radius:50%;background:#f97316"></span> ${T("placeholder.sat")}</div></div></div>`
 }
 const toggles=modelDomains.map(d=>{const a=state.visibleDomains.includes(d.id);return`<button class="domain-btn" style="border:1.5px solid ${d.color};${a?`background:${d.color}10;color:${d.color}`:`color:#b0bec5`}" onclick="toggleDomain('${d.id}')">${a?"◉":"○"} ${d.name}</button>`}).join("");
-const obsT=`<button class="domain-btn" style="border:1.5px solid #f59e0b;${state.showObs?`background:rgba(245,158,11,0.07);color:#b45309`:`color:#b0bec5`}" onclick="setState({showObs:!state.showObs})">${state.showObs?"◉":"○"} Stations obs.</button>`;
-el.innerHTML=`<div class="map-area"><svg viewBox="80 30 650 500" preserveAspectRatio="xMidYMid meet" style="background:linear-gradient(180deg,#dbeafe 0%,#bae6fd 30%,#a5d8f3 100%);border-radius:8px;border:1px solid #cbd5e1">${svg}</svg><div class="domain-toggles">${obsT}${toggles}</div><div class="obs-station-legend"><div class="obs-legend-item"><svg width="9" height="9"><rect x="1" y="1" width="7" height="7" fill="#ea580c" rx="1"/></svg> Météo</div><div class="obs-legend-item"><svg width="9" height="9"><polygon points="4.5,0 9,7 0,7" fill="#eab308"/></svg> Solaire</div><div class="obs-legend-item"><svg width="9" height="9"><polygon points="4.5,0 9,4.5 4.5,9 0,4.5" fill="#f59e0b"/></svg> BSRN</div><div class="obs-legend-item"><svg width="9" height="9"><circle cx="4.5" cy="4.5" r="3.5" fill="#0369a1"/></svg> Territoire</div></div></div><div class="side-panel">${side}</div>`;
+const obsT=`<button class="domain-btn" style="border:1.5px solid #f59e0b;${state.showObs?`background:rgba(245,158,11,0.07);color:#b45309`:`color:#b0bec5`}" onclick="setState({showObs:!state.showObs})">${state.showObs?"◉":"○"} ${T("toggle.obs")}</button>`;
+el.innerHTML=`<div class="map-area"><svg viewBox="80 30 650 500" preserveAspectRatio="xMidYMid meet" style="background:linear-gradient(180deg,#dbeafe 0%,#bae6fd 30%,#a5d8f3 100%);border-radius:8px;border:1px solid #cbd5e1">${svg}</svg><div class="domain-toggles">${obsT}${toggles}</div><div class="obs-station-legend"><div class="obs-legend-item"><svg width="9" height="9"><rect x="1" y="1" width="7" height="7" fill="#ea580c" rx="1"/></svg> ${T("legend.meteo")}</div><div class="obs-legend-item"><svg width="9" height="9"><polygon points="4.5,0 9,7 0,7" fill="#eab308"/></svg> ${T("legend.solar")}</div><div class="obs-legend-item"><svg width="9" height="9"><polygon points="4.5,0 9,4.5 4.5,9 0,4.5" fill="#f59e0b"/></svg> ${T("legend.bsrn")}</div><div class="obs-legend-item"><svg width="9" height="9"><circle cx="4.5" cy="4.5" r="3.5" fill="#0369a1"/></svg> ${T("legend.terr")}</div></div></div><div class="side-panel">${side}</div>`;
 }
 
 function renderMatrix(el){
-const allT=["all","Observation","Réanalyse","Projection","Satellite"];
-const filtered=state.filterDomain==="all"?datasets:datasets.filter(d=>d.domain===state.filterDomain);
-el.innerHTML=`<div style="flex:1;padding:20px;overflow:auto;background:#fff"><div class="filter-bar">${allT.map(d=>`<button class="filter-btn ${state.filterDomain===d?'active':''}" onclick="setState({filterDomain:'${d}'})">${d==="all"?"Tous":d}</button>`).join("")}</div><div style="overflow-x:auto"><table><thead><tr><th style="min-width:65px">Type</th><th style="min-width:170px">Dataset</th><th style="min-width:90px">Source</th><th style="min-width:85px">Résolution</th><th style="min-width:60px">CMIP</th>${territories.map(t=>`<th style="min-width:60px">${t.flag}</th>`).join("")}</tr></thead><tbody>${filtered.map(ds=>{const c=dataTypeColors[ds.domain]||"#94a3b8";return`<tr><td><span style="display:inline-block;width:8px;height:8px;border-radius:50%;background:${c};margin-right:4px"></span><span style="color:${c};font-size:10.5px;font-weight:600">${ds.domain}</span></td><td style="font-weight:600;color:#1e293b">${ds.name}</td><td style="font-size:10.5px;color:#94a3b8">${ds.source||"—"}</td><td class="td-mono">${ds.res}</td><td>${cmipBadge(ds.cmip)||'<span style="color:#cbd5e1">—</span>'}</td>${territories.map(t=>`<td class="td-center">${availIcon(ds.avail[t.id])}</td>`).join("")}</tr>`}).join("")}</tbody></table></div><div class="legend-row"><span><span class="avail-yes">✓</span> Disponible</span><span><span class="avail-partial">○</span> Partiel</span><span><span class="avail-no">✗</span> Non dispo.</span></div></div>`;
+const allT=["all","Observation","Reanalysis","Projection","Satellite"];
+const catLabel={"all":T("matrix.filter.all"),"Observation":T("cat.obs"),"Reanalysis":T("cat.rea"),"Projection":T("cat.proj"),"Satellite":T("cat.sat")};
+const filtered=state.filterDomain==="all"?datasets:datasets.filter(d=>d.cat===state.filterDomain);
+el.innerHTML=`<div style="flex:1;padding:20px;overflow:auto;background:#fff"><div class="filter-bar">${allT.map(d=>`<button class="filter-btn ${state.filterDomain===d?'active':''}" onclick="setState({filterDomain:'${d}'})">${catLabel[d]}</button>`).join("")}</div><div style="overflow-x:auto"><table><thead><tr><th style="min-width:65px">${T("matrix.col.type")}</th><th style="min-width:170px">${T("matrix.col.dataset")}</th><th style="min-width:90px">${T("matrix.col.source")}</th><th style="min-width:85px">${T("matrix.col.res")}</th><th style="min-width:60px">${T("matrix.col.cmip")}</th>${territories.map(t=>`<th style="min-width:60px">${t.flag}</th>`).join("")}</tr></thead><tbody>${filtered.map(ds=>{const c=dataTypeColors[ds.cat]||"#94a3b8";const catTxt=ds.cat==="Observation"?T("cat.obs"):ds.cat==="Reanalysis"?T("cat.rea"):ds.cat==="Projection"?T("cat.proj"):T("cat.sat");return`<tr><td><span style="display:inline-block;width:8px;height:8px;border-radius:50%;background:${c};margin-right:4px"></span><span style="color:${c};font-size:10.5px;font-weight:600">${catTxt}</span></td><td style="font-weight:600;color:#1e293b">${ds.name}</td><td style="font-size:10.5px;color:#94a3b8">${T(ds.srcKey)||"—"}</td><td class="td-mono">${ds.res}</td><td>${cmipBadge(ds.cmip)||'<span style="color:#cbd5e1">—</span>'}</td>${territories.map(t=>`<td class="td-center">${availIcon(ds.avail[t.id])}</td>`).join("")}</tr>`}).join("")}</tbody></table></div><div class="legend-row"><span><span class="avail-yes">✓</span> ${T("avail.yes")}</span><span><span class="avail-partial">○</span> ${T("avail.partial")}</span><span><span class="avail-no">✗</span> ${T("avail.no")}</span></div></div>`;
 }
 
 function renderChain(el){
-const c6=cmipChain.filter(c=>c.from.includes("CMIP6")).map(c=>`<div class="chain-arrow"><span style="color:#2563eb;font-size:16px">→</span><div class="chain-target"><div class="chain-target-name">${c.to}</div><div class="chain-target-desc">${c.type} • ${c.scenario}</div></div></div>`).join("");
-const rea=cmipChain.filter(c=>c.from.includes("ERA5")||c.from.includes("ARPEGE")).map(c=>`<div class="flow-item"><span class="flow-from">${c.from}</span><span class="flow-arrow">→</span><span class="flow-to">${c.to}</span><span class="flow-type">(${c.type})</span></div>`).join("");
-const obs=cmipChain.filter(c=>c.from.includes("Obs")).map(c=>`<div class="flow-item"><span class="flow-from" style="color:#b45309">${c.from}</span><span class="flow-arrow">→</span><span class="flow-to">${c.to}</span><span class="flow-type">(${c.type})</span></div>`).join("");
+const c6=cmipChain.filter(c=>c.fromKey.startsWith("node.cmip6")).map(c=>`<div class="chain-arrow"><span style="color:#2563eb;font-size:16px">→</span><div class="chain-target"><div class="chain-target-name">${T(c.toKey)}</div><div class="chain-target-desc">${T(c.typeKey)} • ${c.scenario}</div></div></div>`).join("");
+const rea=cmipChain.filter(c=>c.fromKey==="node.era5"||c.fromKey==="node.era5_arpege").map(c=>`<div class="flow-item"><span class="flow-from">${T(c.fromKey)}</span><span class="flow-arrow">→</span><span class="flow-to">${T(c.toKey)}</span><span class="flow-type">(${T(c.typeKey)})</span></div>`).join("");
+const obs=cmipChain.filter(c=>c.fromKey==="node.obs_in_situ").map(c=>`<div class="flow-item"><span class="flow-from" style="color:#b45309">${T(c.fromKey)}</span><span class="flow-arrow">→</span><span class="flow-to">${T(c.toKey)}</span><span class="flow-type">(${T(c.typeKey)})</span></div>`).join("");
 el.innerHTML=`<div style="flex:1;padding:20px;overflow:auto;background:#fff;max-width:100%">
-<h2 style="font-size:20px;font-weight:700;margin:0 0 4px;color:#0f172a">Chaîne de modélisation — <span style="color:#0891b2">LIGHTEN-IO</span> / ONDES</h2>
-<p style="font-size:13px;color:#94a3b8;margin:0 0 18px">Observations, réanalyses, projections CMIP6 et descente d'échelle ONDES</p>
+<h2 style="font-size:20px;font-weight:700;margin:0 0 4px;color:#0f172a">${T("chain.title")} <span style="color:#0891b2">LIGHTEN-IO</span> / ONDES</h2>
+<p style="font-size:13px;color:#94a3b8;margin:0 0 18px">${T("chain.subtitle")}</p>
 <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px">
-<div class="chain-card chain-cmip6"><h3 style="font-size:15px;font-weight:700;color:#2563eb;margin:0 0 10px">CMIP6 — Scénarios SSP</h3><div class="scenario-tags">${["SSP1-2.6","SSP2-4.5","SSP3-7.0","SSP5-8.5"].map(s=>`<span class="scenario-tag-cmip6">${s}</span>`).join("")}</div><div style="font-size:12px;color:#94a3b8;margin-bottom:10px">GCMs : CNRM-ESM2-1, 22 modèles (~50–200 km)</div>${c6}</div>
-<div class="chain-card chain-ondes"><h3 style="font-size:15px;font-weight:700;color:#16a34a;margin:0 0 10px">ONDES — Descente d'échelle ML (LIGHTEN-IO)</h3><div style="font-size:12px;color:#64748b;line-height:1.7"><b>Entrée :</b> Champs GCM (vent, T, humidité, géopotentiel 850/500 hPa) + topographie HR<br><b>Sortie :</b> Variables surface haute résolution (rayonnement, T, vent, précipitations)<br><b>Validation :</b> Obs in situ (IOS-net, Météo-France, BSRN) + BRIO bias-corrigées<br><b>Architecture :</b> CNN → U-Net avec topographie statique</div></div>
-<div class="chain-card chain-obs"><h3 style="font-size:15px;font-weight:700;color:#b45309;margin:0 0 10px">Observations in situ — Vérité terrain</h3><div style="font-size:12px;color:#94a3b8;margin-bottom:10px">IOS-net/SolarIO, Météo-France (0.03°), BSRN, NOAA ISD, GHCN-Daily</div><div class="reanalysis-flow">${obs}</div></div>
-<div class="chain-card chain-reanalysis"><h3 style="font-size:15px;font-weight:700;color:#0e7490;margin:0 0 10px">Réanalyses</h3><div class="reanalysis-flow">${rea}</div></div>
+<div class="chain-card chain-cmip6"><h3 style="font-size:15px;font-weight:700;color:#2563eb;margin:0 0 10px">${T("chain.cmip6.title")}</h3><div class="scenario-tags">${["SSP1-2.6","SSP2-4.5","SSP3-7.0","SSP5-8.5"].map(s=>`<span class="scenario-tag-cmip6">${s}</span>`).join("")}</div><div style="font-size:12px;color:#94a3b8;margin-bottom:10px">${T("chain.cmip6.gcms")}</div>${c6}</div>
+<div class="chain-card chain-ondes"><h3 style="font-size:15px;font-weight:700;color:#16a34a;margin:0 0 10px">${T("chain.ondes.title")}</h3><div style="font-size:12px;color:#64748b;line-height:1.7">${T("chain.ondes.input")}<br>${T("chain.ondes.output")}<br>${T("chain.ondes.valid")}<br>${T("chain.ondes.arch")}</div></div>
+<div class="chain-card chain-obs"><h3 style="font-size:15px;font-weight:700;color:#b45309;margin:0 0 10px">${T("chain.obs.title")}</h3><div style="font-size:12px;color:#94a3b8;margin-bottom:10px">${T("chain.obs.sources")}</div><div class="reanalysis-flow">${obs}</div></div>
+<div class="chain-card chain-reanalysis"><h3 style="font-size:15px;font-weight:700;color:#0e7490;margin:0 0 10px">${T("chain.rea.title")}</h3><div class="reanalysis-flow">${rea}</div></div>
 </div>
-<div class="chain-corresp" style="margin-top:14px"><h3 class="section-title">Correspondance RCP ↔ SSP</h3><div class="corresp-row">${[{rcp:"RCP2.6",ssp:"SSP1-2.6",label:"Faibles émissions"},{rcp:"RCP4.5",ssp:"SSP2-4.5",label:"Intermédiaires"},{rcp:"RCP8.5",ssp:"SSP5-8.5",label:"Fortes émissions"}].map(c=>`<div class="corresp-item"><span class="corresp-rcp">${c.rcp}</span><span class="corresp-eq">≈</span><span class="corresp-ssp">${c.ssp}</span><span class="corresp-label">(${c.label})</span></div>`).join("")}</div></div></div>`;
+<div class="chain-corresp" style="margin-top:14px"><h3 class="section-title">${T("chain.corresp")}</h3><div class="corresp-row">${[{rcp:"RCP2.6",ssp:"SSP1-2.6",labelKey:"rcp.low"},{rcp:"RCP4.5",ssp:"SSP2-4.5",labelKey:"rcp.mid"},{rcp:"RCP8.5",ssp:"SSP5-8.5",labelKey:"rcp.high"}].map(c=>`<div class="corresp-item"><span class="corresp-rcp">${c.rcp}</span><span class="corresp-eq">≈</span><span class="corresp-ssp">${c.ssp}</span><span class="corresp-label">(${T(c.labelKey)})</span></div>`).join("")}</div></div></div>`;
 }
 
 function setState(patch){Object.assign(state,patch);render()}
