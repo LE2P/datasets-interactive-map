@@ -157,7 +157,7 @@ const I18N={
     "cat.sat":"Satellite",
     "tab.map":"🗺️ Map & Stations",
     "tab.matrix":"📊 Data Matrix",
-    "tab.chain":"🔗 CMIP & ONDES Chain",
+    "tab.chain":"🔗 CMIP Chain",
     "nav.project":"LIGHTEN-IO Project",
     "panel.sources":"sources available",
     "stat.area":"Area",
@@ -189,10 +189,10 @@ const I18N={
     "avail.partial":"Partial",
     "avail.no":"Not available",
     "chain.title":"Modelling chain —",
-    "chain.subtitle":"Observations, reanalyses, CMIP6 projections and ONDES downscaling",
+    "chain.subtitle":"Observations, reanalyses, CMIP6 projections",
     "chain.cmip6.title":"CMIP6 — SSP scenarios",
     "chain.cmip6.gcms":"GCMs: CNRM-ESM2-1, 22 models (~50–200 km)",
-    "chain.ondes.title":"ONDES — ML downscaling (LIGHTEN-IO)",
+    "chain.ondes.title":"ML downscaling (LIGHTEN-IO)",
     "chain.ondes.input":"<b>Input:</b> GCM fields (wind, T, humidity, 850/500 hPa geopotential) + high-resolution topography",
     "chain.ondes.output":"<b>Output:</b> High-resolution surface variables (radiation, T, wind, precipitation)",
     "chain.ondes.valid":"<b>Validation:</b> In situ obs (IOS-net, Météo-France, BSRN) + bias-corrected BRIO",
@@ -267,7 +267,7 @@ const I18N={
     // chain link nodes
     "node.cmip6_cnrm":"CMIP6 (CNRM-ESM2-1)",
     "node.cmip6_22":"CMIP6 (22 GCMs)",
-    "node.cmip6_ondes":"CMIP6 GCMs → ONDES",
+    "node.cmip6_ondes":"CMIP6 GCMs",
     "node.cmip6_only":"CMIP6 GCMs",
     "node.era5":"ERA5",
     "node.era5_arpege":"ERA5 / ARPEGE",
@@ -279,7 +279,7 @@ const I18N={
     "node.era5land":"ERA5-Land",
     "node.glorys":"GLORYS12V1",
     "node.arome_oi":"AROME Indian Ocean",
-    "node.valid_ondes":"ONDES validation",
+    "node.valid_ondes":"validation",
     "footer":"LIGHTEN-IO · ENERGY-Lab · Univ. La Réunion"
   },
   fr:{
@@ -292,7 +292,7 @@ const I18N={
     "cat.sat":"Satellite",
     "tab.map":"🗺️ Carte & Stations",
     "tab.matrix":"📊 Matrice Données",
-    "tab.chain":"🔗 Chaîne CMIP & ONDES",
+    "tab.chain":"🔗 Chaîne CMIP",
     "nav.project":"Projet LIGHTEN-IO",
     "panel.sources":"sources disponibles",
     "stat.area":"Superficie",
@@ -324,10 +324,10 @@ const I18N={
     "avail.partial":"Partiel",
     "avail.no":"Non dispo.",
     "chain.title":"Chaîne de modélisation —",
-    "chain.subtitle":"Observations, réanalyses, projections CMIP6 et descente d'échelle ONDES",
+    "chain.subtitle":"Observations, réanalyses, projections CMIP6",
     "chain.cmip6.title":"CMIP6 — Scénarios SSP",
     "chain.cmip6.gcms":"GCMs : CNRM-ESM2-1, 22 modèles (~50–200 km)",
-    "chain.ondes.title":"ONDES — Descente d'échelle ML (LIGHTEN-IO)",
+    "chain.ondes.title":"Descente d'échelle ML (LIGHTEN-IO)",
     "chain.ondes.input":"<b>Entrée :</b> Champs GCM (vent, T, humidité, géopotentiel 850/500 hPa) + topographie HR",
     "chain.ondes.output":"<b>Sortie :</b> Variables surface haute résolution (rayonnement, T, vent, précipitations)",
     "chain.ondes.valid":"<b>Validation :</b> Obs in situ (IOS-net, Météo-France, BSRN) + BRIO bias-corrigées",
@@ -395,7 +395,7 @@ const I18N={
     "src.esa":"ESA / Copernicus",
     "node.cmip6_cnrm":"CMIP6 (CNRM-ESM2-1)",
     "node.cmip6_22":"CMIP6 (22 GCMs)",
-    "node.cmip6_ondes":"CMIP6 GCMs → ONDES",
+    "node.cmip6_ondes":"CMIP6 GCMs",
     "node.cmip6_only":"CMIP6 GCMs",
     "node.era5":"ERA5",
     "node.era5_arpege":"ERA5 / ARPEGE",
@@ -407,7 +407,7 @@ const I18N={
     "node.era5land":"ERA5-Land",
     "node.glorys":"GLORYS12V1",
     "node.arome_oi":"AROME Océan Indien",
-    "node.valid_ondes":"Validation ONDES",
+    "node.valid_ondes":"Validation",
     "footer":"LIGHTEN-IO · ENERGY-Lab · Univ. La Réunion"
   }
 };
@@ -548,7 +548,7 @@ const c6=cmipChain.filter(c=>c.fromKey.startsWith("node.cmip6")).map(c=>`<div cl
 const rea=cmipChain.filter(c=>c.fromKey==="node.era5"||c.fromKey==="node.era5_arpege").map(c=>`<div class="flow-item"><span class="flow-from">${T(c.fromKey)}</span><span class="flow-arrow">→</span><span class="flow-to">${T(c.toKey)}</span><span class="flow-type">(${T(c.typeKey)})</span></div>`).join("");
 const obs=cmipChain.filter(c=>c.fromKey==="node.obs_in_situ").map(c=>`<div class="flow-item"><span class="flow-from" style="color:#b45309">${T(c.fromKey)}</span><span class="flow-arrow">→</span><span class="flow-to">${T(c.toKey)}</span><span class="flow-type">(${T(c.typeKey)})</span></div>`).join("");
 el.innerHTML=`<div style="flex:1;padding:20px;overflow:auto;background:#fff;max-width:100%">
-<h2 style="font-size:20px;font-weight:700;margin:0 0 4px;color:#0f172a">${T("chain.title")} <span style="color:#0891b2">LIGHTEN-IO</span> / ONDES</h2>
+<h2 style="font-size:20px;font-weight:700;margin:0 0 4px;color:#0f172a">${T("chain.title")} <span style="color:#0891b2">LIGHTEN-IO</span></h2>
 <p style="font-size:13px;color:#94a3b8;margin:0 0 18px">${T("chain.subtitle")}</p>
 <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px">
 <div class="chain-card chain-cmip6"><h3 style="font-size:15px;font-weight:700;color:#2563eb;margin:0 0 10px">${T("chain.cmip6.title")}</h3><div class="scenario-tags">${["SSP1-2.6","SSP2-4.5","SSP3-7.0","SSP5-8.5"].map(s=>`<span class="scenario-tag-cmip6">${s}</span>`).join("")}</div><div style="font-size:12px;color:#94a3b8;margin-bottom:10px">${T("chain.cmip6.gcms")}</div>${c6}</div>
