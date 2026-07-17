@@ -98,7 +98,7 @@ tr:nth-child(even){background:#f8fafc}
 .chain-cmip6{background:linear-gradient(135deg,#eff6ff 0%,#dbeafe 100%);border:1px solid #bfdbfe}
 .chain-obs{background:linear-gradient(135deg,#fffbeb 0%,#fef3c7 100%);border:1px solid #fde68a}
 .chain-reanalysis{background:linear-gradient(135deg,#ecfeff 0%,#cffafe 100%);border:1px solid #a5f3fc}
-.chain-ondes{background:linear-gradient(135deg,#f0fdf4 0%,#dcfce7 100%);border:1px solid #bbf7d0}
+.chain-downscale{background:linear-gradient(135deg,#f0fdf4 0%,#dcfce7 100%);border:1px solid #bbf7d0}
 .chain-corresp{background:#fff;border:1px solid #e2e8f0;border-radius:10px;padding:18px}
 .scenario-tags{display:flex;gap:5px;flex-wrap:wrap;margin-bottom:10px}
 .scenario-tag-cmip6{padding:3px 10px;background:#dbeafe;border-radius:5px;font-size:11px;color:#2563eb;font-weight:600}
@@ -192,11 +192,11 @@ const I18N={
     "chain.subtitle":"Observations, reanalyses, CMIP6 projections",
     "chain.cmip6.title":"CMIP6 — SSP scenarios",
     "chain.cmip6.gcms":"GCMs: CNRM-ESM2-1, 22 models (~50–200 km)",
-    "chain.ondes.title":"ML downscaling (LIGHTEN-IO)",
-    "chain.ondes.input":"<b>Input:</b> GCM fields (wind, T, humidity, 850/500 hPa geopotential) + high-resolution topography",
-    "chain.ondes.output":"<b>Output:</b> High-resolution surface variables (radiation, T, wind, precipitation)",
-    "chain.ondes.valid":"<b>Validation:</b> In situ obs (IOS-net, Météo-France, BSRN) + bias-corrected BRIO",
-    "chain.ondes.arch":"<b>Architecture:</b> CNN → U-Net with static topography",
+    "chain.downscale.title":"ML downscaling (LIGHTEN-IO)",
+    "chain.downscale.input":"<b>Input:</b> GCM fields (wind, T, humidity, 850/500 hPa geopotential) + high-resolution topography",
+    "chain.downscale.output":"<b>Output:</b> High-resolution surface variables (radiation, T, wind, precipitation)",
+    "chain.downscale.valid":"<b>Validation:</b> In situ obs (IOS-net, Météo-France, BSRN) + bias-corrected BRIO",
+    "chain.downscale.arch":"<b>Architecture:</b> CNN → U-Net with static topography",
     "chain.obs.title":"In situ observations — Ground truth",
     "chain.obs.sources":"IOS-net/SolarIO, Météo-France (0.03°), BSRN, NOAA ISD, GHCN-Daily",
     "chain.rea.title":"Reanalyses",
@@ -267,7 +267,7 @@ const I18N={
     // chain link nodes
     "node.cmip6_cnrm":"CMIP6 (CNRM-ESM2-1)",
     "node.cmip6_22":"CMIP6 (22 GCMs)",
-    "node.cmip6_ondes":"CMIP6 GCMs",
+    "node.cmip6_downscale":"CMIP6 GCMs",
     "node.cmip6_only":"CMIP6 GCMs",
     "node.era5":"ERA5",
     "node.era5_arpege":"ERA5 / ARPEGE",
@@ -279,7 +279,7 @@ const I18N={
     "node.era5land":"ERA5-Land",
     "node.glorys":"GLORYS12V1",
     "node.arome_oi":"AROME Indian Ocean",
-    "node.valid_ondes":"validation",
+    "node.valid_downscale":"validation",
     "footer":"LIGHTEN-IO · ENERGY-Lab · Univ. La Réunion"
   },
   fr:{
@@ -327,11 +327,11 @@ const I18N={
     "chain.subtitle":"Observations, réanalyses, projections CMIP6",
     "chain.cmip6.title":"CMIP6 — Scénarios SSP",
     "chain.cmip6.gcms":"GCMs : CNRM-ESM2-1, 22 modèles (~50–200 km)",
-    "chain.ondes.title":"Descente d'échelle ML (LIGHTEN-IO)",
-    "chain.ondes.input":"<b>Entrée :</b> Champs GCM (vent, T, humidité, géopotentiel 850/500 hPa) + topographie HR",
-    "chain.ondes.output":"<b>Sortie :</b> Variables surface haute résolution (rayonnement, T, vent, précipitations)",
-    "chain.ondes.valid":"<b>Validation :</b> Obs in situ (IOS-net, Météo-France, BSRN) + BRIO bias-corrigées",
-    "chain.ondes.arch":"<b>Architecture :</b> CNN → U-Net avec topographie statique",
+    "chain.downscale.title":"Descente d'échelle ML (LIGHTEN-IO)",
+    "chain.downscale.input":"<b>Entrée :</b> Champs GCM (vent, T, humidité, géopotentiel 850/500 hPa) + topographie HR",
+    "chain.downscale.output":"<b>Sortie :</b> Variables surface haute résolution (rayonnement, T, vent, précipitations)",
+    "chain.downscale.valid":"<b>Validation :</b> Obs in situ (IOS-net, Météo-France, BSRN) + BRIO bias-corrigées",
+    "chain.downscale.arch":"<b>Architecture :</b> CNN → U-Net avec topographie statique",
     "chain.obs.title":"Observations in situ — Vérité terrain",
     "chain.obs.sources":"IOS-net/SolarIO, Météo-France (0.03°), BSRN, NOAA ISD, GHCN-Daily",
     "chain.rea.title":"Réanalyses",
@@ -395,7 +395,7 @@ const I18N={
     "src.esa":"ESA / Copernicus",
     "node.cmip6_cnrm":"CMIP6 (CNRM-ESM2-1)",
     "node.cmip6_22":"CMIP6 (22 GCMs)",
-    "node.cmip6_ondes":"CMIP6 GCMs",
+    "node.cmip6_downscale":"CMIP6 GCMs",
     "node.cmip6_only":"CMIP6 GCMs",
     "node.era5":"ERA5",
     "node.era5_arpege":"ERA5 / ARPEGE",
@@ -407,7 +407,7 @@ const I18N={
     "node.era5land":"ERA5-Land",
     "node.glorys":"GLORYS12V1",
     "node.arome_oi":"AROME Océan Indien",
-    "node.valid_ondes":"Validation",
+    "node.valid_downscale":"Validation",
     "footer":"LIGHTEN-IO · ENERGY-Lab · Univ. La Réunion"
   }
 };
@@ -457,11 +457,11 @@ const datasets=[
 const cmipChain=[
 {fromKey:"node.cmip6_cnrm",toKey:"node.aladin",scenario:"SSP1-2.6, SSP2-4.5, SSP5-8.5",typeKey:"link.dyn"},
 {fromKey:"node.cmip6_22",toKey:"node.cdft",scenario:"SSP1-2.6, SSP5-8.5",typeKey:"link.stat"},
-{fromKey:"node.cmip6_ondes",toKey:"node.unet",scenario:"SSP1-2.6, SSP2-4.5, SSP5-8.5",typeKey:"link.ml"},
+{fromKey:"node.cmip6_downscale",toKey:"node.unet",scenario:"SSP1-2.6, SSP2-4.5, SSP5-8.5",typeKey:"link.ml"},
 {fromKey:"node.cmip6_only",toKey:"node.cordex",scenario:"SSP1-2.6, SSP3-7.0, SSP5-8.5",typeKey:"link.dyn2"},
 {fromKey:"node.era5",toKey:"node.era5land",scenario:"—",typeKey:"link.atmforce"},
 {fromKey:"node.era5",toKey:"node.glorys",scenario:"—",typeKey:"link.sfcforce"},
-{fromKey:"node.obs_in_situ",toKey:"node.valid_ondes",scenario:"—",typeKey:"link.gt"},
+{fromKey:"node.obs_in_situ",toKey:"node.valid_downscale",scenario:"—",typeKey:"link.gt"},
 ];
 
 // ============ STATE ============
@@ -552,7 +552,7 @@ el.innerHTML=`<div style="flex:1;padding:20px;overflow:auto;background:#fff;max-
 <p style="font-size:13px;color:#94a3b8;margin:0 0 18px">${T("chain.subtitle")}</p>
 <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px">
 <div class="chain-card chain-cmip6"><h3 style="font-size:15px;font-weight:700;color:#2563eb;margin:0 0 10px">${T("chain.cmip6.title")}</h3><div class="scenario-tags">${["SSP1-2.6","SSP2-4.5","SSP3-7.0","SSP5-8.5"].map(s=>`<span class="scenario-tag-cmip6">${s}</span>`).join("")}</div><div style="font-size:12px;color:#94a3b8;margin-bottom:10px">${T("chain.cmip6.gcms")}</div>${c6}</div>
-<div class="chain-card chain-ondes"><h3 style="font-size:15px;font-weight:700;color:#16a34a;margin:0 0 10px">${T("chain.ondes.title")}</h3><div style="font-size:12px;color:#64748b;line-height:1.7">${T("chain.ondes.input")}<br>${T("chain.ondes.output")}<br>${T("chain.ondes.valid")}<br>${T("chain.ondes.arch")}</div></div>
+<div class="chain-card chain-downscale"><h3 style="font-size:15px;font-weight:700;color:#16a34a;margin:0 0 10px">${T("chain.downscale.title")}</h3><div style="font-size:12px;color:#64748b;line-height:1.7">${T("chain.downscale.input")}<br>${T("chain.downscale.output")}<br>${T("chain.downscale.valid")}<br>${T("chain.downscale.arch")}</div></div>
 <div class="chain-card chain-obs"><h3 style="font-size:15px;font-weight:700;color:#b45309;margin:0 0 10px">${T("chain.obs.title")}</h3><div style="font-size:12px;color:#94a3b8;margin-bottom:10px">${T("chain.obs.sources")}</div><div class="reanalysis-flow">${obs}</div></div>
 <div class="chain-card chain-reanalysis"><h3 style="font-size:15px;font-weight:700;color:#0e7490;margin:0 0 10px">${T("chain.rea.title")}</h3><div class="reanalysis-flow">${rea}</div></div>
 </div>
